@@ -23,7 +23,7 @@
           </div>
         </div>
 
-        <!-- Busca + Paginação (agora com mesmas margens/padding do cabeçalho) -->
+        <!-- Busca + Paginação -->
         <div class="col-12">
           <div class="bg-white border rounded-3 shadow-sm p-4 m-3 position-sticky filter-sticky">
             <div class="row g-2 align-items-end">
@@ -52,8 +52,8 @@
                     código ANP
                     <i class="bi"
                        [ngClass]="{
-                         'bi-sort-alpha-down': sort[0]?.endsWith(',asc'),
-                         'bi-sort-alpha-up': sort[0]?.endsWith(',desc')
+                         'bi-sort-alpha-down': sort[0] && sort[0].endsWith(',asc'),
+                         'bi-sort-alpha-up': sort[0] && sort[0].endsWith(',desc')
                        }"></i>
                   </button>
                 </div>
@@ -309,7 +309,10 @@
           <button type="button" class="btn btn-outline-secondary" (click)="closeImport()" [disabled]="importing">
             Cancelar
           </button>
-          <button type="button" class="btn btn-success" (click)="addFromCsvText()" [disabled]="importing || !csvText?.trim()">
+          <button type="button"
+                  class="btn btn-success"
+                  (click)="addFromCsvText()"
+                  [disabled]="importing || !(csvText && csvText.trim())">
             <span *ngIf="importing" class="spinner-border spinner-border-sm me-1"></span>
             {{ importing ? 'Importando...' : 'Importar' }}
           </button>
