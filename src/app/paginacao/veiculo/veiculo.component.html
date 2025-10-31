@@ -1,0 +1,155 @@
+<div class="shell">
+  <app-header class="header"></app-header>
+
+  <aside class="sidebar">
+    <app-menu-lateral></app-menu-lateral>
+  </aside>
+
+  <main class="content">
+
+    <div class="page-hero bg-primary text-white rounded shadow-sm d-flex flex-column flex-md-row
+                align-items-center justify-content-between gap-3 p-4 mb-3">
+      <h2 class="m-0 fw-bold">Veículos</h2>
+      <div class="d-flex gap-2">
+        <button class="btn btn-success" (click)="abrirFormCriar()">
+          <i class="bi bi-plus-circle"></i> Adicionar veículo
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="erro" class="alert alert-danger py-2">{{ erro }}</div>
+
+    <div class="container-fluid p-0">
+
+      <!-- FILTROS -->
+      <div class="filter-toolbar border rounded bg-white shadow-sm p-3 mb-3">
+        <div class="row g-2 align-items-end">
+          <div class="col-12 col-sm-6 col-md-4">
+            <label class="form-label mb-1">Placa</label>
+            <input type="text" class="form-control" [(ngModel)]="filtroPlaca">
+          </div>
+
+          <div class="col-6 col-md-4 col-lg-3">
+            <label class="form-label mb-1">Status</label>
+            <select class="form-select" [(ngModel)]="filtroStatus">
+              <option [ngValue]="''">Todos</option>
+              <option *ngFor="let s of statusOpts" [ngValue]="s">{{ s }}</option>
+            </select>
+          </div>
+
+          <div class="col-6 col-md-4 col-lg-3">
+            <label class="form-label mb-1">Tipo</label>
+            <select class="form-select" [(ngModel)]="filtroTipo">
+              <option [ngValue]="''">Todos</option>
+              <option *ngFor="let t of tipoOpts" [ngValue]="t">{{ t }}</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-md-auto ms-auto">
+            <div class="btn-group w-100">
+              <button class="btn btn-outline-primary" (click)="carregar()" [disabled]="carregando">
+                Recarregar
+              </button>
+              <button class="btn btn-outline-secondary" (click)="limparFiltros()">
+                Limpar filtros
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORMULÁRIO (aparece só quando solicitado) -->
+      <div class="card shadow-sm mb-3" *ngIf="mostrarForm">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <strong>{{ editando ? 'Editar veículo' : 'Novo veículo' }}</strong>
+        </div>
+        <div class="card-body">
+          <form #f="ngForm" (ngSubmit)="salvar(f)" autocomplete="off" novalidate>
+            <div class="row g-3">
+              <div class="col-12 col-sm-4 col-md-3">
+                <label class="form-label">Placa</label>
+                <input name="placa" class="form-control" required minlength="6" maxlength="10"
+                       [(ngModel)]="novo.placa" [readonly]="editando">
+                <div class="form-text" *ngIf="!editando">Ex.: ABC1D23</div>
+              </div>
+
+              <div class="col-6 col-sm-4 col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select" required [(ngModel)]="novo.status">
+                  <option *ngFor="let s of statusOpts" [ngValue]="s">{{ s }}</option>
+                </select>
+              </div>
+
+              <div class="col-6 col-sm-4 col-md-4">
+                <label class="form-label">Tipo</label>
+                <select name="tipoVeiculo" class="form-select" required [(ngModel)]="novo.tipoVeiculo">
+                  <option *ngFor="let t of tipoOpts" [ngValue]="t">{{ t }}</option>
+                </select>
+              </div>
+
+              <div class="col-6 col-sm-4 col-md-2">
+                <label class="form-label">Ano</label>
+                <input name="anoVeiculo" type="number" class="form-control" min="1950" max="2100"
+                       [(ngModel)]="novo.anoVeiculo">
+              </div>
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+              <button class="btn btn-primary" type="submit" [disabled]="salvando">
+                {{ editando ? (salvando ? 'Salvando...' : 'Salvar alterações')
+                            : (salvando ? 'Salvando...' : 'Salvar') }}
+              </button>
+              <button class="btn btn-outline-secondary" type="button" (click)="cancelarForm(f)">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- TABELA -->
+      <div class="card shadow-sm">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <strong>Veículos cadastrados</strong>
+          <span class="text-muted small" *ngIf="carregando">Carregando...</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-sm table-hover align-middle m-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width:120px">Placa</th>
+                <th>Status</th>
+                <th>Tipo</th>
+                <th style="width:100px" class="text-end">Ano</th>
+                <th style="width:150px" class="text-end"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let v of filtrados; trackBy: trackByPlaca">
+                <td class="fw-semibold">{{ v.placa }}</td>
+                <td><span class="badge bg-secondary">{{ v.status }}</span></td>
+                <td>{{ v.tipoVeiculo }}</td>
+                <td class="text-end">{{ v.anoVeiculo || '—' }}</td>
+                <td class="text-end">
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" (click)="abrirFormEditar(v)">
+                      Editar
+                    </button>
+                    <button class="btn btn-outline-danger" (click)="excluir(v.placa)">
+                      Excluir
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="!carregando && filtrados.length === 0">
+                <td colspan="5" class="text-center text-muted py-4">Nenhum veículo encontrado.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>

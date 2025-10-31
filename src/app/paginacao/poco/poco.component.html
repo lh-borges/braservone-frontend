@@ -1,0 +1,320 @@
+<div class="alert alert-success floating-alert" *ngIf="alertSucess" role="alert">
+  Operação concluída com sucesso.
+</div>
+
+<div class="shell">
+  <app-header class="header"></app-header>
+
+  <aside class="sidebar border-end">
+    <app-menu-lateral></app-menu-lateral>
+  </aside>
+
+  <main class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Topo -->
+        <div class="col-12">
+          <div class="rounded p-4 m-3 bg-primary d-flex flex-wrap gap-2 justify-content-between align-items-center shadow-sm">
+            <h2 class="text-white fw-bold m-0">Poços Cadastrados</h2>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-light fw-semibold" (click)="openImport()">Importar do CSV</button>
+              <button class="btn btn-light fw-semibold" (click)="onAdd()">+ Adicionar Poço</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Busca + Paginação (agora com mesmas margens/padding do cabeçalho) -->
+        <div class="col-12">
+          <div class="bg-white border rounded-3 shadow-sm p-4 m-3 position-sticky filter-sticky">
+            <div class="row g-2 align-items-end">
+              <!-- Busca local na página atual -->
+              <div class="col-12 col-lg-6">
+                <label for="searchPocos" class="form-label mb-1 h5 fw-semibold">Pesquisar poços (na página atual)</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input
+                    id="searchPocos"
+                    type="text"
+                    class="form-control"
+                    placeholder="Código ANP, bacia, status, campo ou local..."
+                    [(ngModel)]="searchTerm"
+                    (input)="applyFilter()"
+                  />
+                  <button class="btn btn-outline-secondary" type="button" (click)="clearSearch()">Limpar</button>
+                </div>
+              </div>
+
+              <!-- Ordenação -->
+              <div class="col-6 col-lg-2">
+                <label class="form-label">Ordenar</label>
+                <div class="d-grid">
+                  <button class="btn btn-outline-primary" (click)="setSort('codigoAnp')">
+                    código ANP
+                    <i class="bi"
+                       [ngClass]="{
+                         'bi-sort-alpha-down': sort[0]?.endsWith(',asc'),
+                         'bi-sort-alpha-up': sort[0]?.endsWith(',desc')
+                       }"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Itens por página -->
+              <div class="col-6 col-lg-2">
+                <label for="pageSize" class="form-label">Itens por página</label>
+                <select id="pageSize" class="form-select" [ngModel]="pageSize" (ngModelChange)="changePageSize($event)">
+                  <option *ngFor="let s of pageSizeOptions" [ngValue]="s">{{ s }}</option>
+                </select>
+              </div>
+
+              <!-- Contador + carregando -->
+              <div class="col-12 col-lg-2 text-lg-end">
+                <small class="text-muted d-block" *ngIf="!loading && totalElements > 0">
+                  Mostrando {{ firstItemIndex() }}–{{ lastItemIndex() }} de {{ totalElements }}
+                </small>
+                <small class="text-muted d-block" *ngIf="loading">Carregando...</small>
+              </div>
+            </div>
+
+            <!-- Navegação de páginas -->
+            <div class="row mt-2">
+              <div class="col d-flex gap-2 justify-content-end">
+                <button class="btn btn-outline-secondary" (click)="goPrev()" [disabled]="!canPrev()">
+                  <i class="bi bi-chevron-left"></i> Anterior
+                </button>
+                <span class="align-self-center small text-muted">
+                  Página {{ pageIndex + 1 }} / {{ totalPages || 1 }}
+                </span>
+                <button class="btn btn-outline-secondary" (click)="goNext()" [disabled]="!canNext()">
+                  Próxima <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="text-danger mt-2" *ngIf="errorMsg">{{ errorMsg }}</div>
+          </div>
+        </div>
+
+        <!-- Lista -->
+        <div class="col-12">
+          <div class="row g-3 px-3 pb-4 bg-light">
+            <ng-container *ngFor="let p of filteredPocos; trackBy: trackByCod">
+              <div class="col-md-3 col-sm-6">
+                <div class="card h-100 shadow-sm border-0">
+                  <div class="card-body">
+                    <h5 class="card-title fw-bold text-primary">{{ p.codANP }}</h5>
+                    <p class="card-text text-muted small mb-4">
+                      Bacia: {{ p.bacia || '—' }}<br />
+                      Campo: {{ p.nomeCampo || '—' }}<br />
+                      Local: {{ p.local || '—' }}<br />
+                      Status: {{ p.status || '—' }}
+                    </p>
+                    <div class="d-flex justify-content-end gap-2">
+                      <button class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-eye-fill"></i> Visualizar
+                      </button>
+                      <button class="btn btn-outline-warning btn-sm" (click)="onEdit(p)">
+                        <i class="bi bi-pencil-fill"></i> Editar
+                      </button>
+                      <button
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="delete(p)"
+                        [disabled]="deleting.has(getCodigo(p))"
+                      >
+                        <span
+                          *ngIf="deleting.has(getCodigo(p))"
+                          class="spinner-border spinner-border-sm me-1"
+                        ></span>
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Vazio -->
+            <div class="col-12" *ngIf="!loading && filteredPocos.length === 0">
+              <div class="border rounded-3 bg-white p-4 text-center text-muted">
+                Nenhum poço corresponde à pesquisa.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div> <!-- /row -->
+    </div> <!-- /container-fluid -->
+  </main>
+</div>
+
+<!-- Modal: Criar/Editar -->
+<div
+  class="modal fade show d-block createPoco"
+  tabindex="-1"
+  role="dialog"
+  *ngIf="showAdd"
+  style="background: rgba(0,0,0,.5);"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form #addForm="ngForm" (ngSubmit)="$event.preventDefault()">
+        <div class="modal-header bg-primary">
+          <h5 class="modal-title text-white">{{ adicionar ? 'Novo Poço' : 'Editar Poço' }}</h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Linha 1 -->
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="codigoAnp" class="form-label">Código ANP</label>
+              <input
+                id="codigoAnp"
+                name="codigoAnp"
+                class="form-control"
+                [(ngModel)]="newPoco.codigoAnp"
+                required
+                maxlength="64"
+                placeholder="Ex.: 7-CARM-103-SE"
+              />
+              <div class="text-danger small" *ngIf="(addForm.submitted) && !newPoco.codigoAnp">
+                Informe o código ANP.
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <label for="nomeCampo" class="form-label">Nome do Campo</label>
+              <input id="nomeCampo" name="nomeCampo" class="form-control" [(ngModel)]="newPoco.nomeCampo" maxlength="120" placeholder="Ex.: Carmópolis" />
+            </div>
+
+            <div class="col-md-4">
+              <label for="bacia" class="form-label">Bacia (opcional)</label>
+              <select id="bacia" name="bacia" class="form-select" [(ngModel)]="newPoco.bacia">
+                <option [ngValue]="undefined">Selecione...</option>
+                <option *ngFor="let b of bacias" [ngValue]="b">{{ b }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Linha 2 -->
+          <div class="row g-3 mt-1">
+            <div class="col-md-4">
+              <label for="status" class="form-label">Status (opcional)</label>
+              <select id="status" name="status" class="form-select" [(ngModel)]="newPoco.status">
+                <option [ngValue]="undefined">Selecione...</option>
+                <option *ngFor="let s of statusList" [ngValue]="s">{{ s }}</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label for="fluido" class="form-label">Fluido (opcional)</label>
+              <select id="fluido" name="fluido" class="form-select" [(ngModel)]="newPoco.fluido">
+                <option [ngValue]="undefined">Selecione...</option>
+                <option *ngFor="let f of fluidos" [ngValue]="f.value">{{ f.label }}</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label for="local" class="form-label">Local</label>
+              <input id="local" name="local" class="form-control" [(ngModel)]="newPoco.local" maxlength="120" placeholder="Ex.: Carmópolis/SE" />
+            </div>
+          </div>
+
+          <!-- Linha 3: Coordenadas -->
+          <div class="row g-3 mt-1">
+            <div class="col-md-6">
+              <label for="latitude" class="form-label">Latitude</label>
+              <input
+                id="latitude"
+                name="latitude"
+                class="form-control"
+                type="number"
+                step="0.000001"
+                min="-90"
+                max="90"
+                [(ngModel)]="newPoco.latitude"
+                placeholder="Ex.: -10.123456"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="longitude" class="form-label">Longitude</label>
+              <input
+                id="longitude"
+                name="longitude"
+                class="form-control"
+                type="number"
+                step="0.000001"
+                min="-180"
+                max="180"
+                [(ngModel)]="newPoco.longitude"
+                placeholder="Ex.: -36.543210"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Cancelar</button>
+
+          <button *ngIf="adicionar" type="button" class="btn btn-primary" (click)="adicionarPoco()" [disabled]="saving">
+            <span *ngIf="saving" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            {{ saving ? 'Salvando...' : 'Salvar' }}
+          </button>
+
+          <button *ngIf="edit" type="button" class="btn btn-warning" (click)="editarPoco()" [disabled]="saving">
+            <span *ngIf="saving" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            {{ saving ? 'Editando...' : 'Editar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Importar do CSV (multi-linhas) -->
+<div
+  class="modal fade show d-block"
+  tabindex="-1"
+  role="dialog"
+  *ngIf="showImport"
+  style="background: rgba(0,0,0,.5);"
+>
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <form (ngSubmit)="$event.preventDefault()">
+        <div class="modal-header bg-primary">
+          <h5 class="modal-title text-white">Importar do CSV — múltiplas linhas</h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeImport()"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="alert alert-light small">
+            Ordem esperada dos campos:
+            <code>codigoAnp;nomeCampo;bacia;status;fluido;local;latitude;longitude</code><br />
+            Aceita <b>;</b> ou <b>,</b> como separador. Ex.:<br />
+            <code>7-CARM-103-SE;Carmópolis;SERGIPE_ALAGOAS;PRODUZINDO;OLEO_LEVE;Carmópolis/SE;-10.123456;-36.543210</code><br>
+            Dica: cole várias linhas, uma por linha.
+          </div>
+
+          <label class="form-label">Linhas CSV</label>
+          <textarea class="form-control"
+                    rows="10"
+                    [(ngModel)]="csvText"
+                    name="csvText"
+                    placeholder="Cole aqui várias linhas no formato esperado..."></textarea>
+
+          <div class="text-danger mt-2" *ngIf="csvError">{{ csvError }}</div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeImport()" [disabled]="importing">
+            Cancelar
+          </button>
+          <button type="button" class="btn btn-success" (click)="addFromCsvText()" [disabled]="importing || !csvText?.trim()">
+            <span *ngIf="importing" class="spinner-border spinner-border-sm me-1"></span>
+            {{ importing ? 'Importando...' : 'Importar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

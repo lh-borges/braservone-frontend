@@ -1,0 +1,16 @@
+/* aproveita sua grid existente */
+.shell {
+  display: grid;
+  grid-template:
+    "header header" auto
+    "sidebar content" 1fr
+    / 280px 1fr;
+  min-height: 100vh;
+}
+.header { grid-area: header; }
+.sidebar { grid-area: sidebar; background:#8891a3; }
+.content { grid-area: content; padding: 1rem; }
+
+.filter-toolbar .form-label { font-weight: 600; }
+
+.table thead th { white-space: nowrap; }

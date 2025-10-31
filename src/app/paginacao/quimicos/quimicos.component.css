@@ -1,0 +1,58 @@
+/* GRID base que você já usa */
+.shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "header header"
+    "sidebar content";
+  min-height: 100vh;
+}
+.header { grid-area: header; }
+.sidebar { grid-area: sidebar; }
+.content { grid-area: content; background: #f7f9fb;}
+
+/* HERO (azul do topo) */
+.page-hero {
+  border-radius: .5rem;
+}
+
+/* barra de filtros elegante */
+.filter-bar {
+  border: 1px solid #e9ecef;
+}
+
+/* abas coladas no card */
+.card-header .nav-tabs .nav-link {
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-weight: 600;
+  color: #495057;
+}
+.card-header .nav-tabs .nav-link.active {
+  color: #0d6efd;
+  border-bottom-color: #0d6efd;
+}
+
+/* tabela */
+.table thead th {
+  white-space: nowrap;
+  font-weight: 700;
+}
+.table td, .table th {
+  vertical-align: middle;
+}
+
+/* badges de status (Bootstrap 5.3 tem *-subtle; fallback abaixo) */
+.bg-success-subtle { background: #e6f4ea !important; }
+.bg-danger-subtle { background: #fde7e9 !important; }
+
+/* botões pequenos nas ações lembrando o print */
+.btn.btn-sm { padding: .25rem .5rem; }
+
+/* sticky header da tabela em cards altos */
+.table-responsive thead.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}

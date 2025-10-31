@@ -1,0 +1,60 @@
+/* Modal do Poço ocupando ~90% da largura da página */
+.createPoco .modal-dialog {
+  --bs-modal-width: 90vw;     /* Bootstrap 5.2+ */
+  max-width: 90vw;            /* fallback */
+  width: 90vw;                /* garante largura */
+}
+
+/* só um carinho visual */
+.createPoco .modal-dialog {
+  max-width: 1000px;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.sidebar {
+  min-width: 240px;
+}
+
+.content {
+  min-height: 100vh;
+  background: #f7f9fb;
+}
+
+.floating-alert {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  max-width: 300px;
+  z-index: 1050; /* fica acima de outros elementos */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease-out;
+}
+
+/* animação opcional */
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ===== Alinhamento do filtro com o cabeçalho ===== */
+/* Usa as mesmas margens laterais (m-3) e padding (p-4) do cabeçalho */
+.filter-sticky {
+  top: 12px;      /* mantém sticky confortável abaixo do header */
+  z-index: 5;
+}
+
+/* Se algum container externo aplicar padding, você ainda fica alinhado */
+@media (min-width: 576px) {
+  .content .m-3 { margin-left: 1rem !important; margin-right: 1rem !important; }
+}

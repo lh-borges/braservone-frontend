@@ -1,0 +1,17 @@
+/* src/app/quimico-estoque/quimico-estoque.component.css */
+
+.bg-danger-subtle {
+  background-color: rgba(220, 53, 69, 0.12) !important;
+}
+
+.bg-warning-subtle {
+  background-color: rgba(255, 193, 7, 0.12) !important;
+}
+
+.bg-secondary-subtle {
+  background-color: rgba(108, 117, 125, 0.08) !important;
+}
+
+.bg-light-subtle {
+  background-color: rgba(248, 249, 250, 0.7);
+}

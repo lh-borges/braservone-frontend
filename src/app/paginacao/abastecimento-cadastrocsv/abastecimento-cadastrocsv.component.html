@@ -1,0 +1,66 @@
+<div class="card">
+  <h2>Cadastrar Abastecimentos por CSV</h2>
+
+  <div class="actions">
+    <button type="button" (click)="exemplo()">Exemplo</button>
+    <button type="button" (click)="limpar()">Limpar</button>
+  </div>
+
+  <label for="csv">Cole o CSV aqui:</label>
+  <textarea id="csv" [(ngModel)]="csvText" rows="10" placeholder="Placa;Dist. Rodada;Volume total;Valor;Valor por Litro;Media KM/L;Media R$/Km;Data Abastecimento"></textarea>
+
+  <div class="buttons">
+    <button type="button" (click)="parse()">Pré-visualizar</button>
+    <button type="button" [disabled]="!rows.length || importing" (click)="importar()">Importar</button>
+  </div>
+
+  <div class="messages">
+    <div class="error" *ngIf="errorMsg">{{ errorMsg }}</div>
+    <div class="info" *ngIf="infoMsg">{{ infoMsg }}</div>
+  </div>
+
+  <div class="progress" *ngIf="importing || totalDone > 0">
+    <div class="bar" [style.width.%]="progressPercent"></div>
+    <span>{{ totalDone }}/{{ rows.length }} ({{ progressPercent }}%)</span>
+  </div>
+
+  <div *ngIf="rows.length">
+    <h3>Pré-visualização ({{ rows.length }} linhas)</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Placa</th>
+            <th>Dist. Rodada</th>
+            <th>Volume (L)</th>
+            <th>Valor</th>
+            <th>R$/L</th>
+            <th>Média KM/L</th>
+            <th>Média R$/Km</th>
+            <th>Data</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of rows; index as i" [class.ok]="r.status === 'ok'" [class.err]="r.status === 'erro'">
+            <td>{{ i + 1 }}</td>
+            <td>{{ r.placa }}</td>
+            <td>{{ r.distRodadaKm ?? '' }}</td>
+            <td>{{ r.volumeLitros ?? '' }}</td>
+            <td>{{ r.valorTotal ?? '' }}</td>
+            <td>{{ r.valorPorLitro ?? '' }}</td>
+            <td>{{ r.mediaKmPorL ?? '' }}</td>
+            <td>{{ r.mediaRsPorKm ?? '' }}</td>
+            <td title="{{ r.dataIso }}">{{ r.dataStr }}</td>
+            <td>
+              <span *ngIf="r.status === 'ok'">✅ OK</span>
+              <span *ngIf="r.status === 'erro'" title="{{ r.msgErro }}">❌ {{ r.msgErro }}</span>
+              <span *ngIf="!r.status">—</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

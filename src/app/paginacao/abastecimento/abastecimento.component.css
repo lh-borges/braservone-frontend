@@ -1,0 +1,24 @@
+.shell {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 260px 1fr;        /* ajuste a largura da sidebar */
+  min-height: 100vh;
+}
+
+.header {
+  grid-column: 1 / 3;                      /* header pega as 2 colunas */
+  position: sticky;
+  top: 0;
+  z-index: 1020;                           /* acima do conteúdo */
+}
+
+.sidebar {
+  grid-row: 2;                              /* linha de baixo */
+  overflow: auto;                           /* rola independente */
+}
+
+.content {
+  grid-row: 2;
+  overflow: auto;
+  background: var(--bs-body-bg, #f8f9fa);  /* combina com Bootstrap */
+}

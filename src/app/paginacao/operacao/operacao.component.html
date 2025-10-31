@@ -1,0 +1,274 @@
+<!-- SHELL -->
+<div class="shell">
+  <!-- Header -->
+  <app-header class="header"></app-header>
+
+  <!-- Sidebar -->
+  <aside class="sidebar border-end">
+    <app-menu-lateral></app-menu-lateral>
+  </aside>
+
+  <!-- Conteúdo -->
+  <main class="content">
+    <div class="container-fluid">
+      <div class="row">
+
+        <!-- TOPO -->
+        <div class="col-12">
+          <div class="rounded p-4 mx-3 my-3 bg-primary d-flex justify-content-between align-items-center shadow-sm flex-wrap gap-2">
+            <h2 class="text-white fw-bold m-0">Operações Cadastradas</h2>
+            <button class="btn btn-light fw-semibold" (click)="onAdd()">+ Adicionar Operação</button>
+          </div>
+        </div>
+
+        <!-- BARRA DE PESQUISA / FILTROS -->
+        <div class="col-12">
+          <div class="bg-white border rounded-3 shadow-sm p-3 mx-3 mb-3 position-sticky" style="top: 12px; z-index: 5;">
+            <div class="row g-2 align-items-end">
+              
+              <!-- Texto livre -->
+              <div class="col-12 col-md-6">
+                <label for="searchOps" class="form-label mb-1 fw-semibold">Pesquisar operações</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <input
+                    id="searchOps"
+                    type="text"
+                    class="form-control"
+                    placeholder="Digite parte do título ou código ANP"
+                    [(ngModel)]="searchTerm"
+                    (input)="applyFilter()"
+                  />
+                  <button class="btn btn-outline-secondary" type="button" (click)="clearSearch()">Limpar</button>
+                </div>
+              </div>
+
+              <!-- Operadora -->
+              <div class="col-6 col-md-3">
+                <label for="filtroOperadora" class="form-label mb-1 fw-semibold">Operadora</label>
+                <select
+                  id="filtroOperadora"
+                  class="form-select"
+                  [(ngModel)]="filtroOperadora"
+                  (change)="applyFilter()"
+                  [disabled]="loadingOperadoras"
+                >
+                  <option value="">Todas</option>
+                  <option *ngFor="let op of operadoras" [value]="op.id">{{ op.nome }}</option>
+                </select>
+                <div class="form-text" *ngIf="loadingOperadoras">Carregando operadoras…</div>
+              </div>
+
+              <!-- Status -->
+              <div class="col-6 col-md-3">
+                <label for="filtroStatus" class="form-label mb-1 fw-semibold">Status</label>
+                <select
+                  id="filtroStatus"
+                  class="form-select"
+                  [(ngModel)]="filtroStatus"
+                  (change)="applyFilter()"
+                >
+                  <option value="">Todos</option>
+                  <option value="Ativo">Ativo</option>
+                  <option value="Inativo">Inativo</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="text-muted mt-2 small">
+              Resultados nesta página: {{ filteredOps.length }} • Total: {{ total }}
+            </div>
+          </div>
+        </div>
+
+        <!-- LISTA DE CARDS -->
+        <div class="col-12">
+          <div class="row g-3 mx-3 pb-4">
+
+            <!-- Loading -->
+            <div class="col-12" *ngIf="loading">
+              <div class="border rounded-3 bg-white p-4 text-center text-muted">
+                <div class="spinner-border me-2" role="status" aria-hidden="true"></div>
+                Carregando operações...
+              </div>
+            </div>
+
+            <!-- Cards: 4 por fileira (≥ lg), 2 (sm), 1 (xs) -->
+            <ng-container *ngIf="!loading">
+              <ng-container *ngFor="let op of filteredOps; trackBy: trackById">
+                <div class="col-12 col-sm-6 col-lg-3 d-flex">
+                  <div class="card op-card flex-fill w-100 shadow-sm border-0">
+                    <div class="card-body d-flex flex-column">
+                      <h5 class="card-title fw-bold text-primary mb-2 text-truncate" title="{{ op.titulo }}">
+                        {{ op.titulo }}
+                      </h5>
+
+                      <p class="card-text text-muted small mb-4 clamp-3">
+                        Operadora: <span class="text-truncate d-inline-block" style="max-width: 100%">{{ op.operadora }}</span><br>
+                        Status: {{ op.status }}
+                      </p>
+
+                      <div class="mt-auto d-flex flex-wrap justify-content-end gap-2">
+                        <button class="btn btn-inline btn-sm btn-outline-primary btn-action" (click)="onView(op)">
+                          <i class="bi bi-eye"></i> Visualizar
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning btn-action" (click)="onEdit(op)">
+                          <i class="bi bi-pencil"></i> Editar
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-action" (click)="onDelete(op)">
+                          <i class="bi bi-trash"></i> Excluir
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+
+              <!-- Estado vazio -->
+              <div class="col-12" *ngIf="filteredOps.length === 0">
+                <div class="border rounded-3 bg-white p-4 text-center text-muted">
+                  Nenhuma operação corresponde à pesquisa.
+                </div>
+              </div>
+            </ng-container>
+          </div>
+
+          <!-- Paginação -->
+          <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mx-3 mb-4">
+            <div class="text-muted small">
+              Página {{ page + 1 }} • Itens por página: {{ size }}
+            </div>
+            <div class="btn-group flex-wrap">
+              <button class="btn btn-outline-secondary" (click)="prevPage()" [disabled]="page === 0">Anterior</button>
+              <button class="btn btn-outline-secondary" (click)="nextPage()" [disabled]="(page + 1) * size >= total">Próxima</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL: Adicionar/Editar Operação -->
+<div class="modal-overlay" *ngIf="showAddModal">
+  <div class="modal-card responsive-modal">
+    <div class="modal-header">
+      <h5 class="m-0">{{ isEditing ? 'Editar Operação' : 'Nova Operação' }}</h5>
+      <button type="button" class="btn-close" aria-label="Close" (click)="closeAddModal()"></button>
+    </div>
+
+    <!-- Formulário -->
+    <form (ngSubmit)="submitAdd()" #addForm="ngForm" class="modal-body">
+      <!-- Nome -->
+      <div class="mb-3">
+        <label class="form-label">Nome da operação</label>
+        <input
+          class="form-control"
+          name="nomeOperacao"
+          [(ngModel)]="newOp.nomeOperacao"
+          required
+          maxlength="200"
+          placeholder="Ex.: Teste de Produção Carmópolis"
+        />
+      </div>
+
+      <!-- Operadora -->
+      <div class="mb-3">
+        <label class="form-label">Operadora</label>
+        <select
+          class="form-select"
+          name="operadoraId"
+          [(ngModel)]="newOp.operadoraId"
+          required
+        >
+          <option [ngValue]="null" disabled>Selecione…</option>
+          <option *ngFor="let op of operadoras" [ngValue]="op.id">{{ op.nome }}</option>
+        </select>
+      </div>
+
+      <!-- Poço -->
+      <div class="mb-3">
+        <label class="form-label">Poço (código ANP)</label>
+        <select
+          class="form-select"
+          name="pocoCodigoAnp"
+          [(ngModel)]="newOp.pocoCodigoAnp"
+          required
+          [disabled]="loadingPocos"
+        >
+          <option [ngValue]="null" disabled>Selecione…</option>
+          <option *ngFor="let p of pocos" [ngValue]="p.codigoAnp">
+            {{ p.codigoAnp }} — {{ p.siglaCampo || p.nomeCampo || 'Poço' }}
+          </option>
+        </select>
+        <div class="form-text" *ngIf="loadingPocos">Carregando poços…</div>
+      </div>
+
+      <!-- Status -->
+      <div class="mb-3">
+        <label class="form-label">Status</label>
+        <select
+          class="form-select"
+          name="status"
+          [(ngModel)]="newOp.status"
+          required
+        >
+          <option [ngValue]="true">Ativo</option>
+          <option [ngValue]="false">Inativo</option>
+        </select>
+      </div>
+
+      <!-- Datas -->
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Data início</label>
+          <input
+            type="datetime-local"
+            class="form-control"
+            name="dataInicio"
+            [(ngModel)]="newOp.dataInicioLocal"
+          />
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Data final</label>
+          <input
+            type="datetime-local"
+            class="form-control"
+            name="dataFinal"
+            [(ngModel)]="newOp.dataFinalLocal"
+          />
+        </div>
+      </div>
+    </form>
+
+    <!-- Rodapé -->
+    <div class="modal-footer d-flex justify-content-end gap-2">
+      <button type="button" class="btn btn-outline-secondary" (click)="closeAddModal()" [disabled]="saving">Cancelar</button>
+
+      <!-- MODO CRIAR -->
+      <button
+        *ngIf="!isEditing"
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="addForm.invalid || saving"
+        (click)="submitAdd()"
+      >
+        <span *ngIf="saving" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Salvar
+      </button>
+
+      <!-- MODO EDITAR -->
+      <button
+        *ngIf="isEditing"
+        type="button"
+        class="btn btn-warning"
+        (click)="submitEdit()"
+        [disabled]="addForm.invalid || saving"
+      >
+        <span *ngIf="saving" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Atualizar
+      </button>
+    </div>
+  </div>
+</div>

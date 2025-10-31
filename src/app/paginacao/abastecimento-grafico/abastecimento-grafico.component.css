@@ -1,0 +1,104 @@
+/* src/app/abastecimento-grafico/abastecimento-grafico.component.css */
+
+/* Grid com 2 colunas (desktop) e 1 no mobile */
+.charts-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 767.98px) {
+  .charts-grid-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Célula de gráfico */
+.chart-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: #fff;   /* fundo branco */
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.chart-title {
+  font-weight: 600;
+  margin: 0;
+}
+
+.chart-box {
+  position: relative;
+  height: 320px; /* altura padrão nos cards */
+  width: 100%;
+}
+
+/* ===== Modal ===== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 1040;
+}
+
+.modal-shell {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 1050;
+  padding: 16px;
+}
+
+.modal-card {
+  width: min(1100px, 96vw);
+  background: #fff !important; /* branco */
+  border-radius: 10px;
+  border: 1px solid #e6e6e6;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  display: flex;
+  flex-direction: column;
+  max-height: 92vh;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #efefef;
+}
+
+.modal-title {
+  font-weight: 700;
+  margin: 0;
+}
+
+.modal-body {
+  padding: 12px 16px 16px;
+  overflow: auto;
+}
+
+.modal-chart-box {
+  position: relative;
+  height: 70vh;  /* gráfico grande no modal */
+  width: 100%;
+}
+
+/* Botões minimalistas em fundo branco */
+.btn-outline-dark {
+  background: #fff;
+}
+
+.bg-white { background: #fff !important; } /* garante branco onde usado */

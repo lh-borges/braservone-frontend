@@ -1,3 +1,60 @@
-<p>login works!</p>
+<div class="container-fluid bg-primary">
+  <form [formGroup]="loginForm" (ngSubmit)="fazerLogin()" class="needs-validation form-signin" novalidate>
+    <h1 class="h5 mb-3 text-center">
+      <img style="max-width:20%;" src="https://www.braservpetroleo.com.br/imagens/logos/full.png">
+    </h1>
+    <h1 class="h5 mb-4 text-center">Login - Braserv One</h1>
 
-ttestandoooooooooooooooooooooooooooooooooooooooooooo
+    <!-- Username -->
+    <div class="form-floating has-validation">
+      <input
+        type="text"
+        id="floatingInput"
+        class="form-control"
+        formControlName="username"
+        placeholder="Username"
+        [class.is-invalid]="username?.invalid && username?.touched"
+      />
+      <label for="floatingInput">Username</label>
+      <div *ngIf="username?.invalid && username?.touched" class="invalid-feedback p-1 text-danger">
+        <span *ngIf="username?.errors?.['required']">Usuário é obrigatório!</span>
+        <span *ngIf="username?.errors?.['minlength']">Mínimo 3 caracteres!</span>
+        <span *ngIf="username?.errors?.['pattern']">Apenas letras e números são permitidos!</span>
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="form-floating has-validation mt-3">
+      <input
+        type="password"
+        id="floatingPassword"
+        class="form-control"
+        formControlName="password"
+        placeholder="Password"
+        [class.is-invalid]="password?.invalid && password?.touched"
+      />
+      <label for="floatingPassword">Password</label>
+      <div *ngIf="password?.invalid && password?.touched" class="invalid-feedback p-1 text-danger">
+        <span *ngIf="password?.errors?.['required']">Senha é obrigatória!</span>
+        <span *ngIf="password?.errors?.['minlength']">Mínimo 6 caracteres!</span>
+      </div>
+    </div>
+
+    <!-- Botão de Login -->
+    <button type="submit" class="btn btn-primary mt-4 w-100" [disabled]="loginForm.invalid || (loading$ | async)">
+      <ng-container *ngIf="(loading$ | async) === false; else loadingTpl">
+        Entrar
+      </ng-container>
+      <ng-template #loadingTpl>
+        <div class="spinner-border text-light" role="status">
+          <span class="sr-only"></span>
+        </div>
+      </ng-template>
+    </button>
+
+    <!-- Mensagem de erro -->
+    <label *ngIf="(error$ | async)" class="fw-bold text-center text-danger mt-2" style="display: block; text-align: center;">
+      Usuário não encontrado ou senha inválida!
+    </label>
+  </form>
+</div>

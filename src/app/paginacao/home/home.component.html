@@ -1,0 +1,15 @@
+<!-- SHELL: grid com header em cima e 2 colunas abaixo -->
+<div class="shell">
+  <!-- Header ocupa a linha 1 inteira -->
+  <app-header class="header"></app-header>
+
+  <!-- Coluna esquerda (menu) ocupa a linha 2, coluna 1 -->
+  <aside class="sidebar">
+    <app-menu-lateral></app-menu-lateral>
+  </aside>
+
+  <!-- Coluna direita (conteúdo) ocupa a linha 2, coluna 2 -->
+  <main class="content">
+    <pre *ngIf="userDetails$ | async as user">{{ user | json }}</pre>
+  </main>
+</div>

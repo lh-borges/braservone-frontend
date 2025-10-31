@@ -1,0 +1,82 @@
+/* ====== Layout geral ====== */
+.header { position: sticky; top: 0; z-index: 10; }
+.content { min-height: 100vh; background: #f7f9fb; }
+
+/* ====== Cards: altura padrão e botões sem quebrar o layout ====== */
+:root { --op-card-h: 260px; }     /* ajuste fino da altura padrão dos cards */
+.op-card { height: var(--op-card-h); display: flex; flex-direction: column; }
+.btn-action { white-space: nowrap; }
+
+/* Títulos e textos longos não empurram layout */
+.card .text-truncate { vertical-align: bottom; }
+.card-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;      /* até 2 linhas */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;      /* até 3 linhas */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Barra de filtros: reduzir “top sticky” no mobile e dar respiro */
+@media (max-width: 768px) {
+  .position-sticky { top: 8px !important; }
+}
+
+/* Paginação: permitir quebra bonita no mobile */
+@media (max-width: 576px) {
+  .btn-group.flex-wrap .btn { margin-bottom: .25rem; }
+  .btn-action { flex: 1 1 100%; }
+}
+
+/* ====== Modal responsivo ====== */
+.responsive-modal {
+  width: min(720px, 92vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+.responsive-modal .modal-body { padding: 1rem; overflow: auto; }
+.responsive-modal .modal-header,
+.responsive-modal .modal-footer { flex: 0 0 auto; }
+
+@media (max-width: 576px) {
+  .responsive-modal { width: 96vw; border-radius: 12px; }
+  .responsive-modal .modal-body .row > [class*="col-"] {
+    flex: 0 0 100%; max-width: 100%;
+  }
+}
+
+/* ====== Seu modal base ====== */
+.modal-overlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  display: grid; place-items: center;
+  z-index: 1050;
+}
+.modal-card{
+  background: #fff; border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  overflow: hidden; animation: pop .12s ease-out;
+}
+.modal-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: .9rem 1rem; border-bottom: 1px solid #e9ecef; background:#f8f9fa;
+}
+.modal-footer{ padding: .75rem 1rem; border-top: 1px solid #e9ecef; }
+.btn-close{
+  appearance: none; border:0; background: transparent;
+  width: 1.5rem; height: 1.5rem; position: relative; opacity: .6;
+}
+.btn-close::before, .btn-close::after{
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 1rem; height: 2px; background: #333; transform-origin: center;
+}
+.btn-close::before{ transform: translate(-50%,-50%) rotate(45deg); }
+.btn-close::after { transform: translate(-50%,-50%) rotate(-45deg); }
+.btn-close:hover{ opacity: 1; cursor: pointer; }
+@keyframes pop{ from{ transform: translateY(6px); opacity: .6 } to{ transform:none; opacity:1 } }

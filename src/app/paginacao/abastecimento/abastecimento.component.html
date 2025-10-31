@@ -1,0 +1,234 @@
+<!-- SHELL: header em cima + duas colunas (menu / conteúdo) -->
+<div class="shell">
+  <!-- HEADER -->
+  <header class="header" role="banner" aria-label="Cabeçalho do sistema">
+    <app-header></app-header>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar border-end bg-white" role="navigation" aria-label="Menu lateral">
+    <app-menu-lateral></app-menu-lateral>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="content" role="main" aria-label="Conteúdo principal">
+    <div class="container-fluid py-3">
+
+      <!-- HERO / TÍTULO + AÇÃO: NOVO -->
+      <div
+        class="page-hero bg-primary text-white rounded shadow-sm d-flex flex-column flex-md-row
+               align-items-center justify-content-between gap-2 p-3 mb-3">
+        <h2 class="m-0 fw-bold">Abastecimento</h2>
+        <div class="d-flex gap-2">
+          <button class="btn btn-light btn-sm" (click)="novo()">Novo Abastecimento</button>
+        </div>
+      </div>
+
+      <!-- NAV TABS -->
+      <ul class="nav nav-tabs" role="tablist" aria-label="Abas de Abastecimento">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" [class.active]="isTab('gerenciar')" (click)="setTab('gerenciar')"
+                  id="tab-gerenciar" type="button" role="tab" aria-controls="pane-gerenciar"
+                  [attr.aria-selected]="isTab('gerenciar')">Gerenciar</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" [class.active]="isTab('relatorios')" (click)="setTab('relatorios')"
+                  id="tab-relatorios" type="button" role="tab" aria-controls="pane-relatorios"
+                  [attr.aria-selected]="isTab('relatorios')">Relatórios</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" [class.active]="isTab('estatisticas')" (click)="setTab('estatisticas')"
+                  id="tab-estatisticas" type="button" role="tab" aria-controls="pane-estatisticas"
+                  [attr.aria-selected]="isTab('estatisticas')">Estatísticas</button>
+        </li>
+      </ul>
+
+      <div class="tab-content pt-3">
+        <!-- GERENCIAR -->
+        <div class="tab-pane fade" [class.show]="isTab('gerenciar')" [class.active]="isTab('gerenciar')"
+             id="pane-gerenciar" role="tabpanel" aria-labelledby="tab-gerenciar">
+
+          <!-- FILTRO -->
+          <div class="filter-toolbar border rounded bg-white shadow-sm p-3 mb-3">
+            <div class="row g-2 align-items-end">
+              <div class="col-12 col-md-4">
+                <label class="form-label mb-1" for="filtroPlaca">Placa (listar)</label>
+                <input
+                  id="filtroPlaca"
+                  name="filtroPlaca"
+                  class="form-control"
+                  [disabled]="loading()"
+                  [ngModel]="placa()"
+                  (ngModelChange)="placa.set($event)"
+                  (keydown.enter)="carregar(0)"
+                  placeholder="ABC1D23"
+                  autocomplete="off">
+              </div>
+              <div class="col-12 col-md-auto d-flex gap-2">
+                <button class="btn btn-outline-primary" [disabled]="loading()" (click)="carregar(0)">
+                  Carregar
+                </button>
+                <button class="btn btn-outline-secondary" [disabled]="loading()" (click)="limparFiltro()">
+                  Limpar
+                </button>
+              </div>
+              <div class="col-12 col-md-auto">
+                <span class="badge" [ngClass]="{'bg-secondary': isTodos(), 'bg-primary': !isTodos()}">
+                  {{ isTodos() ? 'Listando: TODOS' : ('Listando: ' + (placa() || '').toUpperCase()) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- MENSAGENS -->
+          <div *ngIf="errorMsg()" class="alert alert-danger py-2">{{ errorMsg() }}</div>
+          <div *ngIf="infoMsg()" class="alert alert-success py-2">{{ infoMsg() }}</div>
+
+          <!-- FORM (visível em Novo/Editar) -->
+          <div *ngIf="formVisible()" class="card shadow-sm mb-3">
+            <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+              <span>{{ formTitle() }}</span>
+              <button class="btn btn-sm btn-outline-secondary" (click)="cancelarEdicao()">Cancelar</button>
+            </div>
+            <div class="card-body">
+              <form [formGroup]="form" (ngSubmit)="submit()">
+
+                <div class="row g-3">
+                  <div class="col-12 col-sm-4">
+                    <label class="form-label" for="placaVeiculo">Placa *</label>
+                    <input id="placaVeiculo" class="form-control" formControlName="placaVeiculo" placeholder="ABC1D23" autocomplete="off">
+                    <div class="text-danger small" *ngIf="hasError('placaVeiculo','required')">Obrigatório.</div>
+                  </div>
+
+                  <div class="col-12 col-sm-4">
+                    <label class="form-label" for="dataAbast">Data/Hora *</label>
+                    <input id="dataAbast" class="form-control" type="datetime-local" formControlName="dataAbastecimentoLocal">
+                    <div class="text-danger small" *ngIf="hasError('dataAbastecimentoLocal','required')">Obrigatório.</div>
+                  </div>
+
+                  <div class="col-12 col-sm-4">
+                    <label class="form-label" for="distRodadaKm">Dist. rodada (km) *</label>
+                    <input id="distRodadaKm" class="form-control" type="number" step="0.01" formControlName="distRodadaKm" inputmode="decimal">
+                    <div class="text-danger small" *ngIf="hasError('distRodadaKm','required')">Obrigatório.</div>
+                  </div>
+
+                  <div class="col-12 col-sm-4">
+                    <label class="form-label" for="volumeLitros">Volume (L) *</label>
+                    <input id="volumeLitros" class="form-control" type="number" step="0.001" formControlName="volumeLitros" inputmode="decimal">
+                    <div class="text-danger small" *ngIf="hasError('volumeLitros','required')">Obrigatório.</div>
+                  </div>
+
+                  <div class="col-12 col-sm-4">
+                    <label class="form-label" for="valorTotal">Valor Total (R$)</label>
+                    <input id="valorTotal" class="form-control" type="number" step="0.01" formControlName="valorTotal" inputmode="decimal">
+                  </div>
+
+                  <div class="col-12 col-sm-4">
+                    <label class="form-label" for="valorPorLitro">Valor por Litro (R$/L)</label>
+                    <input id="valorPorLitro" class="form-control" type="number" step="0.001" formControlName="valorPorLitro" inputmode="decimal">
+                  </div>
+
+                  <div class="col-12 col-sm-4">
+                    <label class="form-label" for="mediaKmPorL">Média (km/L)</label>
+                    <input id="mediaKmPorL" class="form-control" type="number" step="0.000001" formControlName="mediaKmPorL" inputmode="decimal">
+                  </div>
+
+                  <div class="col-12 col-sm-4">
+                    <label class="form-label" for="mediaRsPorKm">Média (R$/km)</label>
+                    <input id="mediaRsPorKm" class="form-control" type="number" step="0.000001" formControlName="mediaRsPorKm" inputmode="decimal">
+                  </div>
+                </div>
+
+                <div class="mt-3 d-flex gap-2 align-items-center">
+                  <button class="btn btn-primary" [disabled]="saving()" type="submit">{{ submitLabel() }}</button>
+                  <div class="text-danger small" *ngIf="priceMissing()">
+                    Informe Valor Total ou Valor por Litro.
+                  </div>
+                </div>
+
+              </form>
+            </div>
+          </div>
+
+          <!-- LISTA -->
+          <div class="card shadow-sm">
+            <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+              <span>Abastecimentos</span>
+              <div class="small">Total: {{ totalElements() }}</div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Data</th>
+                    <th>Placa</th>
+                    <th class="text-end">Dist. (km)</th>
+                    <th class="text-end">Volume (L)</th>
+                    <th class="text-end">Valor (R$)</th>
+                    <th class="text-end">R$/L</th>
+                    <th class="text-end">km/L</th>
+                    <th class="text-end">R$/km</th>
+                    <th class="text-end">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let r of rows()">
+                    <td>{{ r.dataAbastecimento | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ r.placaVeiculo }}</td>
+                    <td class="text-end">{{ r.distRodadaKm | number:'1.2-2' }}</td>
+                    <td class="text-end">{{ r.volumeLitros | number:'1.3-3' }}</td>
+                    <td class="text-end">{{ r.valorTotal | currency:'BRL':'symbol':'1.2-2' }}</td>
+                    <td class="text-end">{{ r.valorPorLitro | number:'1.3-3' }}</td>
+                    <td class="text-end">{{ r.mediaKmPorL | number:'1.6-6' }}</td>
+                    <td class="text-end">{{ r.mediaRsPorKm | number:'1.6-6' }}</td>
+                    <td class="text-end">
+                      <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" (click)="editar(r)">Editar</button>
+                        <button class="btn btn-outline-danger" (click)="remover(r.id)">Excluir</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr *ngIf="rows().length === 0">
+                    <td colspan="9" class="text-center text-muted py-3">Nenhum registro.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="card-footer d-flex justify-content-between align-items-center">
+              <div class="small">
+                Página {{ page() + 1 }} de {{ totalPages() }}
+                <span class="ms-2 badge" [ngClass]="{'bg-secondary': isTodos(), 'bg-primary': !isTodos()}">
+                  {{ isTodos() ? 'TODOS' : ('Placa: ' + (placa() || '').toUpperCase()) }}
+                </span>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-outline-secondary btn-sm" [disabled]="!canPrev()" (click)="goToPage(page()-1)">Anterior</button>
+                <button class="btn btn-outline-secondary btn-sm" [disabled]="!canNext()" (click)="goToPage(page()+1)">Próxima</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RELATÓRIOS -->
+        <div class="tab-pane fade" [class.show]="isTab('relatorios')" [class.active]="isTab('relatorios')"
+             id="pane-relatorios" role="tabpanel" aria-labelledby="tab-relatorios">
+          <div class="alert alert-info mb-0">
+            <!-- Só instancia quando a aba RELATÓRIOS estiver ativa -->
+            <app-abastecimento-cadastrocsv *ngIf="isTab('relatorios')"></app-abastecimento-cadastrocsv>
+          </div>
+        </div>
+
+        <!-- ESTATÍSTICAS -->
+        <div class="tab-pane fade" [class.show]="isTab('estatisticas')" [class.active]="isTab('estatisticas')"
+             id="pane-estatisticas" role="tabpanel" aria-labelledby="tab-estatisticas">
+          <div class="alert alert-info mb-0">
+            <!-- Só instancia quando a aba ESTATÍSTICAS estiver ativa -->
+            <app-abastecimento-grafico *ngIf="isTab('estatisticas')"></app-abastecimento-grafico>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

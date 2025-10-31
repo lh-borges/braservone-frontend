@@ -1,0 +1,267 @@
+<!-- SHELL: grid com header e sidebar -->
+<div class="shell">
+  <!-- Header -->
+  <app-header class="header"></app-header>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <app-menu-lateral></app-menu-lateral>
+  </aside>
+
+  <!-- Conteúdo principal -->
+  <main class="content">
+    <div class="container-fluid">
+      <div class="row">
+
+        <!-- TOPO -->
+        <div class="col-12">
+          <div
+            class="rounded p-4 mt-3 mx-3 bg-primary shadow-sm d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+            <h2 class="text-white fw-bold m-0">Operadoras Cadastradas</h2>
+            <button class="btn btn-light fw-semibold" (click)="openModalNovo()">+ Adicionar Operadora</button>
+          </div>
+        </div>
+
+        <!-- 🔍 BARRA DE PESQUISA (fora do topo; mesma largura: mx-3) -->
+        <div class="col-12">
+          <div class="bg-white border rounded-3 shadow-sm p-3 my-3 mx-3">
+            <div class="row g-2 align-items-center">
+              <div class="col-12 col-md-8">
+                <label for="searchOperadora" class="form-label mb-1 fw-semibold">Pesquisar Operadora</label>
+                <div class="input-group">
+                  <input
+                    type="text"
+                    id="searchOperadora"
+                    class="form-control"
+                    placeholder="Digite o nome da operadora..."
+                    [(ngModel)]="termoBusca"
+                    (input)="aplicarFiltro()" />
+                  <button class="btn btn-outline-primary" (click)="aplicarFiltro()">Pesquisar</button>
+                </div>
+              </div>
+
+              <div class="col-12 col-md-4 d-flex align-items-end mt-2 mt-md-0">
+                <select class="form-select" [(ngModel)]="filtroStatus" (change)="aplicarFiltro()">
+                  <option value="todas">Todas</option>
+                  <option value="ativas">Ativas</option>
+                  <option value="inativas">Inativas</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LISTA DE CARDS -->
+        <div class="col-12">
+          <div class="row g-3 px-3 pb-5">
+            <div class="col-12 col-md-6 col-lg-4" *ngFor="let op of filtradas; trackBy: trackByOperadoraId">
+              <div class="card shadow-sm h-100 border-0">
+                <div class="card-body d-flex flex-column">
+                  <h5 class="card-title text-primary fw-bold mb-2">{{ op.nome }}</h5>
+                  <p class="text-muted mb-1"><strong>E-mail:</strong> {{ op.emailContato || '-' }}</p>
+                  <p class="text-muted mb-1"><strong>Telefone:</strong> {{ op.telefoneContato || '-' }}</p>
+                  <p class="text-muted mb-2"><strong>Cidade:</strong> {{ op.cidade || '-' }}</p>
+
+                  <div class="mt-auto d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <span class="badge" [class.text-bg-success]="op.ativo" [class.text-bg-secondary]="!op.ativo">
+                      {{ op.ativo ? 'Ativa' : 'Inativa' }}
+                    </span>
+
+                    <div class="d-flex w-100 w-sm-auto gap-2">
+                      <!-- ✏️ EDITAR -->
+                      <button
+                        type="button"
+                        class="btn btn-outline-warning btn-sm flex-fill flex-sm-unset"
+                        (click)="openModalEditar(op.id)">
+                        Editar
+                      </button>
+
+                      <!-- 🗑️ EXCLUIR -->
+                      <button
+                        type="button"
+                        class="btn btn-outline-danger btn-sm flex-fill flex-sm-unset"
+                        (click)="confirmarExclusao(op)"
+                        [disabled]="deletando.has(op.id!)">
+                        <span *ngIf="deletando.has(op.id!)" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="filtradas.length === 0" class="col-12">
+              <div class="text-center text-muted py-5">Nenhuma operadora encontrada.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ✅ ALERTA FLUTUANTE -->
+<div class="alert alert-success floating-alert" *ngIf="alertSuccess" role="alert">
+  Operadora salva com sucesso.
+</div>
+
+<!-- 🧩 MODAL: ADICIONAR/EDITAR OPERADORA -->
+<div
+  class="modal fade show d-block createOperadora"
+  tabindex="-1"
+  role="dialog"
+  *ngIf="showModal"
+  style="background: rgba(0,0,0,.5);">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form #opForm="ngForm" (ngSubmit)="$event.preventDefault()">
+        <div class="modal-header bg-primary">
+          <h5 class="modal-title text-white">{{ editMode ? 'Editar Operadora' : 'Nova Operadora' }}</h5>
+          <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
+        </div>
+
+        <div class="modal-body">
+          <!-- spinner enquanto carrega dados da edição -->
+          <div *ngIf="formLoading" class="d-flex align-items-center gap-2 mb-2">
+            <span class="spinner-border spinner-border-sm" role="status"></span>
+            <span>Carregando dados da operadora...</span>
+          </div>
+
+          <div class="row g-3">
+            <!-- Nome (obrigatório) -->
+            <div class="col-md-6">
+              <label for="nome" class="form-label">Nome</label>
+              <input
+                id="nome" name="nome"
+                class="form-control"
+                [(ngModel)]="form.nome"
+                required
+                maxlength="150"
+                placeholder="Ex.: Petrobras" />
+              <div class="text-danger small" *ngIf="opForm.submitted && !form.nome">Informe o nome.</div>
+            </div>
+
+            <!-- Siglas -->
+            <div class="col-md-3">
+              <label for="siglas" class="form-label">Siglas</label>
+              <input id="siglas" name="siglas" class="form-control" [(ngModel)]="form.siglas" maxlength="16" placeholder="Ex.: PETR" />
+            </div>
+
+            <!-- País -->
+            <div class="col-md-3">
+              <label for="pais" class="form-label">País</label>
+              <input id="pais" name="pais" class="form-control" [(ngModel)]="form.pais" maxlength="60" placeholder="Ex.: Brasil" />
+            </div>
+
+            <!-- E-mail -->
+            <div class="col-md-6">
+              <label for="emailContato" class="form-label">E-mail de Contato</label>
+              <input
+                id="emailContato" name="emailContato"
+                class="form-control"
+                [(ngModel)]="form.emailContato"
+                type="email"
+                maxlength="120"
+                placeholder="contato@operadora.com" />
+            </div>
+
+            <!-- Telefone -->
+            <div class="col-md-6">
+              <label for="telefoneContato" class="form-label">Telefone</label>
+              <input
+                id="telefoneContato" name="telefoneContato"
+                class="form-control"
+                [(ngModel)]="form.telefoneContato"
+                maxlength="30"
+                placeholder="(xx) xxxxx-xxxx" />
+            </div>
+
+            <!-- Responsável técnico -->
+            <div class="col-md-6">
+              <label for="responsaveltecnico" class="form-label">Responsável Técnico</label>
+              <input
+                id="responsaveltecnico" name="responsaveltecnico"
+                class="form-control"
+                [(ngModel)]="form.responsaveltecnico"
+                maxlength="120"
+                placeholder="Nome do responsável" />
+            </div>
+
+            <!-- Ativo -->
+            <div class="col-md-6 d-flex align-items-end">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="ativo" name="ativo" [(ngModel)]="form.ativo" />
+                <label class="form-check-label" for="ativo">Ativa</label>
+              </div>
+            </div>
+
+            <!-- Endereço (opcional) -->
+            <div class="col-12">
+              <hr class="my-1" />
+              <small class="text-muted">Endereço (opcional)</small>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label" for="logradouro">Logradouro</label>
+              <input id="logradouro" name="logradouro" class="form-control" [(ngModel)]="form.endereco.logradouro" maxlength="120" />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label" for="numero">Número</label>
+              <input id="numero" name="numero" class="form-control" [(ngModel)]="form.endereco.numero" maxlength="20" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="bairro">Bairro</label>
+              <input id="bairro" name="bairro" class="form-control" [(ngModel)]="form.endereco.bairro" maxlength="60" />
+            </div>
+            <div class="col-md-5">
+              <label class="form-label" for="cidade">Cidade</label>
+              <input id="cidade" name="cidade" class="form-control" [(ngModel)]="form.endereco.cidade" maxlength="60" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label" for="estado">Estado</label>
+              <input id="estado" name="estado" class="form-control" [(ngModel)]="form.endereco.estado" maxlength="2" placeholder="UF" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="cep">CEP</label>
+              <input id="cep" name="cep" class="form-control" [(ngModel)]="form.endereco.cep" maxlength="12" />
+            </div>
+          </div>
+
+          <!-- Erro do backend -->
+          <div class="text-danger mt-3" *ngIf="errorMsg">{{ errorMsg }}</div>
+        </div>
+
+        <!-- Rodapé: Adicionar vs Editar -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="saving || formLoading">
+            Cancelar
+          </button>
+
+          <!-- Novo -->
+          <button
+            *ngIf="!editMode"
+            type="button"
+            class="btn btn-primary"
+            (click)="salvarOperadora(opForm)"
+            [disabled]="saving || formLoading">
+            <span *ngIf="saving" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            {{ saving ? 'Salvando...' : 'Adicionar' }}
+          </button>
+
+          <!-- Editar -->
+          <button
+            *ngIf="editMode"
+            type="button"
+            class="btn btn-primary"
+            (click)="atualizarOperadora(opForm)"
+            [disabled]="saving || formLoading">
+            <span *ngIf="saving" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            {{ saving ? 'Salvando...' : 'Salvar alterações' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

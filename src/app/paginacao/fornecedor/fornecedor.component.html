@@ -1,0 +1,104 @@
+<!-- SHELL: grid com header em cima e 2 colunas abaixo -->
+<div class="shell">
+  <!-- Header ocupa a linha 1 inteira -->
+  <app-header class="header"></app-header>
+
+  <!-- Coluna esquerda (menu) ocupa a linha 2, coluna 1 -->
+  <aside class="sidebar">
+    <app-menu-lateral></app-menu-lateral>
+  </aside>
+
+  <!-- Coluna direita (conteúdo) ocupa a linha 2, coluna 2 -->
+  <main class="content">
+    <div class="container-fluid py-3">
+      <div
+        class="page-hero bg-primary text-white rounded shadow-sm d-flex flex-column flex-md-row
+               align-items-center justify-content-between gap-3 p-4 mb-3">
+        <h2 class="m-0 fw-bold">Fornecedores</h2>
+
+        <!-- Busca rápida -->
+        <form class="d-flex gap-2" (submit)="$event.preventDefault(); carregar()">
+          <input class="form-control" placeholder="Buscar por nome…" [(ngModel)]="busca" name="busca" />
+          <button class="btn btn-light" type="button" (click)="carregar()">Buscar</button>
+        </form>
+      </div>
+
+      <!-- feedback -->
+      <div *ngIf="sucessoMsg" class="alert alert-success py-2">{{ sucessoMsg }}</div>
+      <div *ngIf="erroMsg" class="alert alert-danger py-2">{{ erroMsg }}</div>
+
+      <!-- formulário de cadastro -->
+      <form #f="ngForm" (ngSubmit)="salvar(f)" class="card shadow-sm mb-4"
+            [attr.aria-busy]="salvando ? 'true' : 'false'">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-md-8">
+              <label class="form-label">Nome</label>
+              <input
+                type="text"
+                class="form-control"
+                name="nome"
+                [(ngModel)]="formModel.nome"
+                required
+                maxlength="120"
+                placeholder="Nome do fornecedor" />
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label">Tipo do fornecedor</label>
+              <select class="form-select" name="tipo" [(ngModel)]="formModel.tipo" required>
+                <option *ngFor="let t of TIPOS" [ngValue]="t">{{ t }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-end gap-2">
+          <button type="submit" class="btn btn-primary" [disabled]="salvando || f.invalid">
+            <span *ngIf="salvando" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Salvar
+          </button>
+        </div>
+      </form>
+
+      <!-- tabela de fornecedores -->
+      <div class="card shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle m-0">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 100px;">ID</th>
+                  <th>Nome</th>
+                  <th style="width: 220px;">Tipo</th>
+                  <th style="width: 140px;">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of fornecedores; trackBy: trackById">
+                  <td>{{ item.id }}</td>
+                  <td>{{ item.nome }}</td>
+                  <td><span class="badge bg-secondary">{{ item.tipo }}</span></td>
+                  <td>
+                    <button class="btn btn-outline-danger btn-sm"
+                            (click)="deletar(item)"
+                            [disabled]="deletandoId === item.id">
+                      <span *ngIf="deletandoId === item.id"
+                            class="spinner-border spinner-border-sm me-1"
+                            role="status" aria-hidden="true"></span>
+                      Deletar
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="!fornecedores.length">
+                  <td colspan="4" class="text-center text-muted py-4">Nenhum fornecedor cadastrado.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>

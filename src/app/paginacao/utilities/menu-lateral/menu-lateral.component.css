@@ -1,0 +1,42 @@
+.menu-lateral { background:#8891a3; } /* mantém seu tom */
+
+.section-btn {
+  background: transparent;
+  border: 0;
+  color: rgba(255,255,255,.6);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-weight: 700;
+  padding: .25rem .5rem;
+  margin: .25rem 0 .5rem;
+  display: flex;
+  gap: .5rem;
+}
+
+.section-btn:focus { outline: none; }
+.section-title { color: rgba(255,255,255,.7); }
+
+.chev {
+  display: inline-block;
+  transition: transform .15s ease;
+  width: 1rem;
+  text-align: center;
+}
+.chev.rotate { transform: rotate(90deg); }
+
+.collapse-list { display: none; }
+.collapse-list.show { display: block; }
+
+.nav .nav-link.child {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .25rem .5rem .25rem 1.5rem; /* recuo dos filhos */
+  border-radius: .5rem;
+}
+.nav .nav-link.child:hover { background: rgba(255,255,255,.08); }
+
+.icon { width: 1.25rem; text-align: center; }
+
+/* remove “vão” causado por mb-auto anterior */
+.menu-section + .menu-section { margin-top: .25rem; }

@@ -1,0 +1,86 @@
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  display: grid;
+  gap: 12px;
+}
+
+.actions, .buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+textarea {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.messages .error { color: #b00020; }
+.messages .info  { color: #1b5e20; }
+
+.progress {
+  position: relative;
+  background: #f1f1f1;
+  border-radius: 8px;
+  height: 10px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.progress .bar {
+  height: 100%;
+  background: #1976d2;
+  transition: width .2s ease;
+}
+.progress span {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #333;
+}
+
+.table-wrapper {
+  overflow: auto;
+  max-height: 55vh;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+thead th {
+  position: sticky;
+  top: 0;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+}
+td, th {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f2f2f2;
+  text-align: left;
+  white-space: nowrap;
+}
+
+tr.ok { background: #f1fff5; }
+tr.err { background: #fff5f5; }
+
+button {
+  background: #1976d2;
+  color: #fff;
+  border: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+button[disabled] {
+  opacity: .6;
+  cursor: not-allowed;
+}

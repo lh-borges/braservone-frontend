@@ -1,0 +1,90 @@
+<nav class="menu-lateral text-white p-3 h-100 d-flex flex-column" aria-label="Menu lateral">
+  <a [routerLink]="['/']" class="d-flex align-items-center mb-3 text-white text-decoration-none">
+    <span class="fs-4">Menu</span>
+  </a>
+
+  <!-- OPERAÇÕES -->
+  <div class="menu-section">
+    <button class="section-btn d-flex align-items-center w-100"
+            (click)="toggle('operacoes')"
+            [attr.aria-expanded]="expanded.operacoes">
+      <span class="chev" [class.rotate]="expanded.operacoes">▸</span>
+      <span class="section-title">Operações</span>
+    </button>
+
+    <ul class="nav nav-pills flex-column mb-3 collapse-list" [class.show]="expanded.operacoes">
+      <li class="nav-item">
+        <a [routerLink]="['/poco']" class="nav-link link-light child">
+          <i class="bi bi-geo-alt-fill icon"></i> Poços
+        </a>
+      </li>
+      <li class="nav-item">
+        <a [routerLink]="['/operacao']" class="nav-link link-light child">
+          <i class="bi bi-clipboard-check-fill icon"></i> Operação
+        </a>
+      </li>
+      <li class="nav-item">
+        <a [routerLink]="['/operadora']" class="nav-link link-light child">
+          <i class="bi bi-building-fill icon"></i> Operadora
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- CIMENTAÇÃO -->
+  <div class="menu-section">
+    <button class="section-btn d-flex align-items-center w-100"
+            (click)="toggle('cimentacao')"
+            [attr.aria-expanded]="expanded.cimentacao">
+      <span class="chev" [class.rotate]="expanded.cimentacao">▸</span>
+      <span class="section-title">Cimentação</span>
+    </button>
+
+    <!-- nada de mb-auto: usamos mb-3 para não “empurrar” Transporte -->
+    <ul class="nav nav-pills flex-column mb-3 collapse-list" [class.show]="expanded.cimentacao">
+      <li class="nav-item">
+        <a [routerLink]="['/quimicos']" class="nav-link link-light child">
+          <i class="bi bi-droplet-fill icon"></i> Químicos
+        </a>
+      </li>
+      <li class="nav-item">
+        <a [routerLink]="['/fornecedorquimico']" class="nav-link link-light child">
+          <i class="bi bi-person-workspace icon"></i> Fornecedores
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- TRANSPORTE -->
+  <div class="menu-section">
+    <button class="section-btn d-flex align-items-center w-100"
+            (click)="toggle('transporte')"
+            [attr.aria-expanded]="expanded.transporte">
+      <span class="chev" [class.rotate]="expanded.transporte">▸</span>
+      <span class="section-title">Transporte</span>
+    </button>
+
+    <ul class="nav nav-pills flex-column mb-3 collapse-list" [class.show]="expanded.transporte">
+      <li class="nav-item">
+        <a [routerLink]="['/veiculo']" class="nav-link link-light child">
+          <i class="bi bi-truck-front-fill icon"></i> Veículos
+        </a>
+      </li>
+      <li class="nav-item">
+        <a [routerLink]="['/abastecimento']" class="nav-link link-light child">
+          <i class="bi bi-fuel-pump-fill icon"></i> Abastecimento
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <hr class="border-light opacity-25 my-3">
+
+  <ul class="nav flex-column mt-auto">
+    <li class="nav-item">
+      <a [routerLink]="['/cadastro']" class="nav-link link-light">
+        <i class="bi bi-person-plus-fill icon"></i> Cadastro
+      </a>
+    </li>
+  </ul>
+</nav>

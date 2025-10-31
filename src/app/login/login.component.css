@@ -1,0 +1,35 @@
+.tela {
+    max-width: 100%;
+    width: 25%; /* Para telas grandes */
+  }
+  .userError{
+    font-size: 0.8em;
+  }
+
+  .container-fluid{
+    height: 100% !important;
+  }
+  
+  @media (max-width: 768px) {
+    .tela {
+      width: 75% !important; /* Para telas menores que 768px */
+    }
+    .badge {
+        font-size: 0.8rem !important; /* Ajusta o tamanho da fonte para telas pequenas */
+      }
+  }
+
+  .form-signin{
+    width: 100%;
+    max-width: 350px;
+    min-width: 300px;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 3px;
+    margin: 0 auto;
+    display: block;
+    position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  }
