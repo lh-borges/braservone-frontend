@@ -116,7 +116,7 @@
             <div class="card shadow-sm m-3">
               <div class="card-header d-flex align-items-center justify-content-between">
                 <span class="fw-semibold">Observações</span>
-                <span class="badge text-bg-secondary">{{ observacoes?.length || 0 }}</span>
+                <span class="badge text-bg-secondary">{{ observacoes.length || 0 }}</span>
               </div>
 
               <div class="card-body">
@@ -141,7 +141,7 @@
                 </div>
 
                 <!-- Lista -->
-                <ng-container *ngIf="observacoes?.length; else vazioObs">
+                <ng-container *ngIf="observacoes.length > 0; else vazioObs">
                   <div class="row g-3">
                     <div class="col-12 col-md-12 col-lg-12" *ngFor="let o of observacoes">
                       <div class="card h-100 shadow-lg border-0">
