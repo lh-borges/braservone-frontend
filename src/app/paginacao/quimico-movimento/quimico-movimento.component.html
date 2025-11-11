@@ -22,7 +22,9 @@
     <div class="col-12 col-sm-6 col-lg-4">
       <label class="form-label mb-1" for="filtroTipoQuimico">Tipo de Químico</label>
       <div class="input-group">
-        <select id="filtroTipoQuimico" class="form-select" [(ngModel)]="selectedTipoQuimico">
+        <select id="filtroTipoQuimico"
+                class="form-select"
+                [(ngModel)]="selectedTipoQuimico">
           <option [ngValue]="undefined">Selecione um tipo...</option>
           <option *ngFor="let t of tiposOptions" [ngValue]="t">{{ t }}</option>
         </select>
@@ -38,7 +40,9 @@
     <div class="col-12 col-sm-6 col-lg-3">
       <label class="form-label mb-1" for="filtroTipoMov">Tipo de Movimento</label>
       <div class="input-group">
-        <select id="filtroTipoMov" class="form-select" [(ngModel)]="selectedTipoMov">
+        <select id="filtroTipoMov"
+                class="form-select"
+                [(ngModel)]="selectedTipoMov">
           <option [ngValue]="undefined">Selecione...</option>
           <option [ngValue]="'ENTRADA'">ENTRADA</option>
           <option [ngValue]="'SAIDA'">SAÍDA</option>
@@ -55,18 +59,24 @@
     <div class="col-12 col-sm-6 col-lg-3">
       <label class="form-label mb-1" for="filtroPoco">Poço (código ANP)</label>
       <div class="input-group">
-        <select id="filtroPoco" class="form-select" [(ngModel)]="movForm.pocoCodigoAnp">
-          <option [ngValue]="''">Selecione um poço...</option>
+        <select id="filtroPoco"
+                class="form-select"
+                [(ngModel)]="movForm.pocoCodigoAnp"
+                (ngModelChange)="onPocoChange($event)">
+          <option [ngValue]="null">Selecione um poço...</option>
           <option *ngFor="let p of pocosOptions" [ngValue]="p.codigoAnp">
             {{ p.codigoAnp }}{{ p.nome ? (' — ' + p.nome) : '' }}
           </option>
         </select>
         <button class="btn btn-outline-primary"
                 (click)="carregarMovPorPoco(movForm.pocoCodigoAnp)"
-                [disabled]="!(movForm.pocoCodigoAnp && movForm.pocoCodigoAnp.length) || movLoading">
+                [disabled]="!movForm.pocoCodigoAnp || movLoading">
           Buscar
         </button>
       </div>
+      <small class="text-muted" *ngIf="movForm.pocoCodigoAnp">
+        Selecionado: "{{ movForm.pocoCodigoAnp }}"
+      </small>
     </div>
 
     <!-- Busca por LOTE -->
@@ -97,45 +107,73 @@
   <div class="card-body">
     <div class="row g-3 align-items-end">
 
+      <!-- Select de Químico -->
       <div class="col-md-4">
         <label class="form-label" for="cadQuimico">Químico *</label>
-        <select id="cadQuimico" class="form-select" [(ngModel)]="movForm.quimicoCodigo">
+        <select id="cadQuimico"
+                class="form-select"
+                [(ngModel)]="movForm.quimicoCodigo">
           <option [ngValue]="undefined">Selecione…</option>
           <option *ngFor="let q of quimicosOptions" [ngValue]="q.codigo">
-            {{ q.lote }} — {{ q.tipoQuimico }} ({{ q.fornecedor?.nome || 'Fornecedor' }})
+            {{ (q.lote || '—') }} - {{ (q.tipoQuimico || '—') }} - {{ (q.estadoLocalArmazenamento || '—') }}
           </option>
         </select>
       </div>
 
+      <!-- Select de Poço -->
       <div class="col-md-4">
         <label class="form-label" for="cadPoco">Poço (código ANP) *</label>
-        <select id="cadPoco" class="form-select" [(ngModel)]="movForm.pocoCodigoAnp">
-          <option [ngValue]="''">Selecione…</option>
+        <select id="cadPoco"
+                class="form-select"
+                [(ngModel)]="movForm.pocoCodigoAnp"
+                (ngModelChange)="onPocoChange($event)">
+          <option [ngValue]="null">Selecione…</option>
           <option *ngFor="let p of pocosOptions" [ngValue]="p.codigoAnp">
             {{ p.codigoAnp }}{{ p.nome ? (' — ' + p.nome) : '' }}
           </option>
         </select>
       </div>
 
+      <!-- Tipo -->
       <div class="col-md-2">
         <label class="form-label" for="cadTipo">Tipo *</label>
-        <select id="cadTipo" class="form-select" [(ngModel)]="movForm.tipo">
+        <select id="cadTipo"
+                class="form-select"
+                [(ngModel)]="movForm.tipo">
           <option [ngValue]="undefined">Selecione…</option>
           <option [ngValue]="'ENTRADA'">ENTRADA</option>
           <option [ngValue]="'SAIDA'">SAÍDA</option>
         </select>
       </div>
 
+      <!-- Quantidade -->
       <div class="col-md-2">
         <label class="form-label" for="cadQtd">Quantidade *</label>
-        <input id="cadQtd" type="number" step="0.000001" class="form-control" [(ngModel)]="movForm.quantidade">
+        <input id="cadQtd"
+               type="number"
+               step="0.000001"
+               class="form-control"
+               [(ngModel)]="movForm.quantidade">
       </div>
 
+      <!-- Botões -->
       <div class="col-12 d-flex justify-content-end gap-2">
-        <button class="btn btn-outline-secondary" (click)="mostrarCadastro = false">Cancelar</button>
-        <button class="btn btn-secondary" [disabled]="movSalvando" (click)="registrarMovimento()">
+        <button class="btn btn-outline-secondary"
+                (click)="mostrarCadastro = false">
+          Cancelar
+        </button>
+        <button class="btn btn-secondary"
+                [disabled]="movSalvando"
+                (click)="registrarMovimento()">
           Registrar
         </button>
+      </div>
+
+      <!-- ALERTA DE ERRO -->
+      <div class="alert alert-danger floating-alert"
+           *ngIf="alertError"
+           role="alert">
+        {{ alertErrorMsg }}
       </div>
 
     </div>
@@ -153,24 +191,32 @@
         <th>Tipo</th>
         <th>Quantidade</th>
         <th>Criado em</th>
+        <th class="text-end">Ações</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let m of movRowsFiltrados; trackBy: trackMov">
-        <td>{{ m.lote || '-' }}</td>
-        <td>{{ m.tipoQuimico || '-' }}</td>
-        <td>{{ m.pocoCodigoAnp }}</td>
+        <td>{{ getLote(m) }}</td>
+        <td>{{ getTipoQuimico(m) }}</td>
+        <td>{{ getPocoCodigo(m) }}</td>
         <td>{{ m.tipoMovimento }}</td>
         <td>{{ m.qntMovimentada }}</td>
         <td>{{ m.criadoEm | date:'yyyy-MM-dd HH:mm' }}</td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-danger"
+                  (click)="deletarMovimento(m)"
+                  [disabled]="movLoading">
+            Excluir
+          </button>
+        </td>
       </tr>
 
       <tr *ngIf="!movLoading && movRowsFiltrados.length === 0">
-        <td colspan="6" class="text-center text-muted">Sem movimentos.</td>
+        <td colspan="7" class="text-center text-muted">Sem movimentos.</td>
       </tr>
 
       <tr *ngIf="movLoading">
-        <td colspan="6" class="text-center text-muted">Carregando…</td>
+        <td colspan="7" class="text-center text-muted">Carregando…</td>
       </tr>
     </tbody>
   </table>

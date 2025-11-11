@@ -12,8 +12,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Poco } from '../../model/poco';
 import { PocoDTO } from '../../dto/poco-dto';
 
-type PocoView = PocoDTO & {
+// View model CANÔNICO para o front
+type PocoView = {
+  codigoAnp: string;
+  tipoPoco?: string;
   nomeCampo?: string;
+  bacia?: string;
+  status?: string;
+  fluido?: string;
   local?: string;
   latitude?: number | null;
   longitude?: number | null;
@@ -21,6 +27,7 @@ type PocoView = PocoDTO & {
 
 interface PocoForm {
   codigoAnp: string;
+  tipoPoco?: string;
   nomeCampo?: string;
   bacia?: string;
   status?: string;
@@ -56,22 +63,22 @@ export class PocoComponent implements OnInit {
   csvError = '';
   importing = false;
 
-  // busca (client-side sobre a página atual)
+  // busca (client-side)
   searchTerm = '';
 
-  // dados (conteúdo da página atual)
+  // dados
   allPocos: PocoView[] = [];
   filteredPocos: PocoView[] = [];
 
-  // ===== paginação =====
-  pageIndex = 0;              // 0-based
+  // paginação
+  pageIndex = 0;
   pageSize = 50;
   pageSizeOptions = [20, 50, 100, 200];
   totalElements = 0;
   totalPages = 0;
-  sort: string[] = ['codigoAnp,asc']; // mesmo formato do backend
+  sort: string[] = ['codigoAnp,asc'];
 
-  // ===== listas auxiliares =====
+  // listas auxiliares
   bacias: string[] = [
     'DESCONHECIDO','ACRE','ALAGOAS','ALMADA','AMAZONAS','ARARIPE','BARREIRINHAS','BRAGANCA_VIZEU',
     'CAMAMU','CAMPOS','CEARA','CUMURUXATIBA','ESPIRITO_SANTO','FOZ_DO_AMAZONAS','JACUIPE',
@@ -117,14 +124,28 @@ export class PocoComponent implements OnInit {
     'PRODUZINDO_E_INJETANDO'
   ];
 
-  // form model
+  tipoPocoOptions: string[] = [
+    'POCO_EXPLORATORIO_PIONEIRO',
+    'POCO_EXPLORATORIO_ESTRATIGRAFICO',
+    'POCO_EXPLORATORIO_EXTENSAO',
+    'POCO_EXPLORATORIO_PIONEIRO_ADJACENTE',
+    'POCO_EXPLORATORIO_PROSPECTO_MAIS_RASO',
+    'POCO_EXPLORATORIO_PROSPECTO_MAIS_PROFUNDO',
+    'POCO_EXPLOTATORIO_PRODUCAO',
+    'POCO_EXPLOTATORIO_INJECAO',
+    'POCO_ESPECIAL',
+    'POCO_ESTOCAGEM'
+  ];
+
   newPoco: PocoForm = this.criarNovoPocoVazio();
 
   constructor(private pocoSvc: PocoService) {}
 
-  ngOnInit(): void { this.loadPage(0); }
+  ngOnInit(): void {
+    this.loadPage(0);
+  }
 
-  /** --------- Carregamento paginado --------- */
+  // ---------- Página ----------
   loadPage(page: number): void {
     this.loading = true;
     this.errorMsg = '';
@@ -146,130 +167,183 @@ export class PocoComponent implements OnInit {
       this.pageSize = res.size ?? this.pageSize;
 
       const data = res.content ?? [];
-      this.allPocos = data.map(d => ({
-        codANP: (d as any).codANP,
-        bacia: (d as any).bacia,
-        status: (d as any).status,
-        fluido: (d as any).fluido,
-        nomeCampo: (d as any).nomeCampo,
-        local: (d as any).local,
-        latitude: (d as any).latitude ?? null,
-        longitude: (d as any).longitude ?? null,
-      }));
 
-      // filtro client-side apenas sobre a página atual
+      // Normaliza TUDO pra PocoView com codigoAnp fixo
+      this.allPocos = data.map((d: any): PocoView => ({
+        codigoAnp: d.codigoAnp ?? d.codANP ?? d.codigo ?? '',
+        tipoPoco: d.tipoPoco,
+        nomeCampo: d.nomeCampo,
+        bacia: d.bacia,
+        status: d.status,
+        fluido: d.fluido,
+        local: d.local,
+        latitude: d.latitude ?? null,
+        longitude: d.longitude ?? null,
+      })).filter(p => !!p.codigoAnp);
+
       this.applyFilter();
     });
   }
 
-  // Helpers para paginação
   firstItemIndex(): number {
     if (this.totalElements === 0) return 0;
     return this.pageIndex * this.pageSize + 1;
-    }
+  }
+
   lastItemIndex(): number {
     const last = (this.pageIndex + 1) * this.pageSize;
     return Math.min(last, this.totalElements);
   }
+
   canPrev(): boolean { return this.pageIndex > 0; }
   canNext(): boolean { return this.pageIndex + 1 < this.totalPages; }
+
   goPrev(): void { if (this.canPrev()) this.loadPage(this.pageIndex - 1); }
   goNext(): void { if (this.canNext()) this.loadPage(this.pageIndex + 1); }
+
   changePageSize(size: number): void {
     this.pageSize = Number(size) || 50;
     this.loadPage(0);
   }
+
   setSort(field: string): void {
-    // alterna asc/desc para o mesmo campo
     const current = this.sort.find(s => s.startsWith(field + ','));
     const dir = current?.endsWith(',asc') ? 'desc' : 'asc';
     this.sort = [`${field},${dir}`];
     this.loadPage(0);
   }
 
-  /** --------- Busca local (na página) --------- */
+  // ---------- Busca ----------
   applyFilter(): void {
     const q = this.normalize(this.searchTerm);
-    if (!q) { this.filteredPocos = [...this.allPocos]; return; }
+    if (!q) {
+      this.filteredPocos = [...this.allPocos];
+      return;
+    }
 
     this.filteredPocos = this.allPocos.filter(p =>
-      this.normalize(`${(p as any).codANP} ${(p as any).bacia} ${(p as any).status} ${(p as any).nomeCampo ?? ''} ${(p as any).local ?? ''}`)
+      this.normalize(`${p.codigoAnp} ${p.bacia} ${p.status} ${p.nomeCampo ?? ''} ${p.local ?? ''}`)
         .includes(q)
     );
   }
-  clearSearch(): void { this.searchTerm = ''; this.applyFilter(); }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.applyFilter();
+  }
+
   private normalize(s: string): string {
     return (s || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
   }
-  trackByCod = (_: number, p: PocoView) => this.getCodigo(p) ?? _;
 
-  getCodigo(p: PocoView): string { return (p as any).codANP || (p as any).codigoAnp; }
+  trackByCod = (_: number, p: PocoView) => p.codigoAnp;
 
-  /** --------- Modal Criar/Editar --------- */
+  getCodigo(p: PocoView): string {
+    return p.codigoAnp;
+  }
+
+  // ---------- Modal ----------
   onAdd(): void {
-    this.showAdd = true; this.adicionar = true; this.edit = false;
+    this.showAdd = true;
+    this.adicionar = true;
+    this.edit = false;
     this.newPoco = this.criarNovoPocoVazio();
   }
 
   onEdit(p: PocoView): void {
-    const codigo = this.getCodigo(p); if (!codigo) return;
-    this.showAdd = true; this.adicionar = false; this.edit = true;
+    const codigo = this.getCodigo(p);
+    if (!codigo) return;
+
+    this.showAdd = true;
+    this.adicionar = false;
+    this.edit = true;
 
     this.pocoSvc.getByCodigoAnp(codigo)
-      .pipe(catchError(err => { console.error('Erro ao buscar poço', err); return of(null); }))
-      .subscribe(po => {
+      .pipe(catchError(err => {
+        console.error('Erro ao buscar poço', err);
+        return of(null);
+      }))
+      .subscribe((po: any) => {
         if (!po) return;
         this.newPoco = {
-          codigoAnp: (po as any).codigoAnp ?? (po as any).codANP ?? '',
-          nomeCampo: (po as any).nomeCampo ?? '',
-          bacia: (po as any).bacia ?? undefined,
-          status: (po as any).status ?? undefined,
-          fluido: (po as any).fluido ?? undefined,
-          local: (po as any).local ?? '',
-          latitude: ((po as any).latitude as any) ?? null,
-          longitude: ((po as any).longitude as any) ?? null,
+          codigoAnp: po.codigoAnp ?? po.codANP ?? '',
+          tipoPoco: po.tipoPoco ?? undefined,
+          nomeCampo: po.nomeCampo ?? '',
+          bacia: po.bacia ?? undefined,
+          status: po.status ?? undefined,
+          fluido: po.fluido ?? undefined,
+          local: po.local ?? '',
+          latitude: po.latitude ?? null,
+          longitude: po.longitude ?? null,
         };
       });
   }
 
   closeModal(): void {
-    this.showAdd = false; this.adicionar = false; this.edit = false;
+    this.showAdd = false;
+    this.adicionar = false;
+    this.edit = false;
     this.newPoco = this.criarNovoPocoVazio();
   }
 
-  /** --------- Ações CRUD --------- */
+  // ---------- CRUD ----------
   adicionarPoco(): void {
-    if (this.saving) return; this.saving = true;
+    if (this.saving) return;
+    this.saving = true;
+
     const body: Poco = this.formToModel(this.newPoco);
+    if (!body.codigoAnp || !body.tipoPoco) {
+      this.saving = false;
+      this.errorMsg = 'Código ANP e Tipo de Poço são obrigatórios.';
+      return;
+    }
 
     this.pocoSvc.createPoco(body)
       .pipe(finalize(() => (this.saving = false)))
       .subscribe({
         next: () => {
-          this.alertSucess = true; this.loadPage(0); this.closeModal();
+          this.alertSucess = true;
+          this.loadPage(0);
+          this.closeModal();
           setTimeout(() => (this.alertSucess = false), 5000);
         },
-        error: (err: any) => { console.error('Erro ao adicionar poço:', err); },
+        error: (err: any) => {
+          console.error('Erro ao adicionar poço:', err);
+          this.errorMsg = err?.error?.mensage || err?.error?.message || 'Erro ao adicionar poço.';
+        },
       });
   }
 
   editarPoco(): void {
-    if (this.saving) return; this.saving = true;
+    if (this.saving) return;
+    this.saving = true;
+
     const body: Poco = this.formToModel(this.newPoco);
+    if (!body.codigoAnp || !body.tipoPoco) {
+      this.saving = false;
+      this.errorMsg = 'Código ANP e Tipo de Poço são obrigatórios.';
+      return;
+    }
 
     this.pocoSvc.updatePocoByCodigoAnp(body.codigoAnp!, body)
       .pipe(finalize(() => (this.saving = false)))
       .subscribe({
         next: () => {
-          this.alertSucess = true; this.loadPage(this.pageIndex); this.closeModal();
+          this.alertSucess = true;
+          this.loadPage(this.pageIndex);
+          this.closeModal();
           setTimeout(() => (this.alertSucess = false), 5000);
         },
-        error: (err: any) => { console.error('Erro ao editar poço:', err); },
+        error: (err: any) => {
+          console.error('Erro ao editar poço:', err);
+          this.errorMsg = err?.error?.mensage || err?.error?.message || 'Erro ao editar poço.';
+        },
       });
   }
 
   delete(p: PocoView): void {
-    const cod = this.getCodigo(p); if (!cod) return;
+    const cod = this.getCodigo(p);
+    if (!cod) return;
     if (!confirm(`Excluir o poço ${cod}?`)) return;
     if (this.deleting.has(cod)) return;
 
@@ -280,7 +354,8 @@ export class PocoComponent implements OnInit {
         next: () => this.onDeleteSuccess(cod),
         error: (err: any) => {
           if (err instanceof HttpErrorResponse && (err.status === 200 || err.status === 204)) {
-            this.onDeleteSuccess(cod); return;
+            this.onDeleteSuccess(cod);
+            return;
           }
           alert(`Não foi possível excluir o poço ${cod}.`);
           console.error(`Falha ao excluir ${cod}:`, err);
@@ -289,15 +364,24 @@ export class PocoComponent implements OnInit {
   }
 
   private onDeleteSuccess(cod: string): void {
-    // recarrega a página atual (pode ter “sobrado” espaço)
     this.loadPage(this.pageIndex);
     this.alertSucess = true;
     setTimeout(() => (this.alertSucess = false), 3000);
   }
 
-  // ===== Import CSV (inalterado) =====
-  openImport(): void { this.csvText = ''; this.csvError = ''; this.showImport = true; }
-  closeImport(): void { this.showImport = false; this.csvText = ''; this.csvError = ''; this.importing = false; }
+  // ---------- Import CSV ----------
+  openImport(): void {
+    this.csvText = '';
+    this.csvError = '';
+    this.showImport = true;
+  }
+
+  closeImport(): void {
+    this.showImport = false;
+    this.csvText = '';
+    this.csvError = '';
+    this.importing = false;
+  }
 
   addFromCsvText(): void {
     const raw = (this.csvText || '').trim();
@@ -319,11 +403,11 @@ export class PocoComponent implements OnInit {
       return { idx: i + 1, line, poco };
     });
 
-    const valid = parsed.filter(x => x.poco && x.poco.codigoAnp);
-    const invalid = parsed.filter(x => !x.poco || !x.poco.codigoAnp);
+    const valid = parsed.filter(x => x.poco && x.poco.codigoAnp && x.poco.tipoPoco);
+    const invalid = parsed.filter(x => !x.poco || !x.poco.codigoAnp || !x.poco.tipoPoco);
 
     if (valid.length === 0) {
-      this.csvError = 'Nenhuma linha válida (faltando codigoAnp).';
+      this.csvError = 'Nenhuma linha válida (faltando codigoAnp ou tipoPoco).';
       return;
     }
 
@@ -345,7 +429,7 @@ export class PocoComponent implements OnInit {
 
       this.closeImport();
       this.alertSucess = true;
-      this.loadPage(0); // volta para primeira página
+      this.loadPage(0);
       setTimeout(() => (this.alertSucess = false), 4000);
 
       if (fail > 0 || invalid.length > 0) {
@@ -363,14 +447,32 @@ export class PocoComponent implements OnInit {
   private parseCsvLine(line: string): Poco | null {
     const sep = line.includes(';') ? ';' : ',';
     const parts = line.split(sep).map(s => s.trim().replace(/^"(.*)"$/, '$1'));
-    while (parts.length < 8) parts.push('');
+    while (parts.length < 9) parts.push('');
 
-    const [codigoAnp, nomeCampo, bacia, status, fluido, local, latStr, lonStr] = parts;
+    const [
+      codigoAnp,
+      nomeCampo,
+      bacia,
+      status,
+      fluido,
+      local,
+      latStr,
+      lonStr,
+      tipoPocoRaw
+    ] = parts;
+
     const latitude  = this.parseNumOrNull(latStr);
     const longitude = this.parseNumOrNull(lonStr);
 
+    const tipoPocoNorm = this.normEnum(tipoPocoRaw);
+    const tipoPoco = tipoPocoNorm || 'POCO_EXPLORATORIO_PIONEIRO';
+
+    const cod = (codigoAnp || '').trim();
+    if (!cod) return null;
+
     return {
-      codigoAnp: (codigoAnp || '').trim() || undefined,
+      codigoAnp: cod,
+      tipoPoco,
       nomeCampo: (nomeCampo || '').trim() || undefined,
       bacia: this.normEnum(bacia) || undefined,
       status: this.normEnum(status) || undefined,
@@ -397,19 +499,14 @@ export class PocoComponent implements OnInit {
       .replace(/[^A-Z0-9]+/g, '_')
       .replace(/^_+|_+$/g, '')
       .replace(/_+/g, '_');
-    if (n === 'STATUS' || n === 'FLUIDO' || n === 'BACIA') return undefined;
+    if (['STATUS', 'FLUIDO', 'BACIA', 'TIPO_POCO'].includes(n)) return undefined;
     return n || undefined;
-  }
-
-  private isPlaceholder(v?: string): boolean {
-    if (!v) return true;
-    const t = v.trim().toUpperCase();
-    return t === '' || t === 'STATUS' || t === 'FLUIDO' || t === 'BACIA';
   }
 
   private criarNovoPocoVazio(): PocoForm {
     return {
       codigoAnp: '',
+      tipoPoco: undefined,
       nomeCampo: '',
       bacia: undefined,
       status: undefined,
@@ -420,9 +517,16 @@ export class PocoComponent implements OnInit {
     };
   }
 
+  private isPlaceholder(v?: string): boolean {
+    if (!v) return true;
+    const t = v.trim().toUpperCase();
+    return ['','STATUS','FLUIDO','BACIA','TIPO_POCO'].includes(t);
+  }
+
   private formToModel(form: PocoForm): Poco {
     return {
       codigoAnp: form.codigoAnp?.trim(),
+      tipoPoco: form.tipoPoco || 'POCO_EXPLORATORIO_PIONEIRO',
       nomeCampo: form.nomeCampo || undefined,
       bacia: this.isPlaceholder(form.bacia) ? undefined : form.bacia,
       status: this.isPlaceholder(form.status) ? undefined : form.status,

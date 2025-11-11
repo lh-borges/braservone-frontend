@@ -1,86 +1,131 @@
-<!-- src/app/quimico-estoque/quimico-estoque.component.html -->
-
 <div class="mb-3 d-flex align-items-center gap-2">
   <h5 class="mb-0">Estoque Atual</h5>
   <span *ngIf="carregando" class="spinner-border spinner-border-sm text-secondary" role="status"></span>
 </div>
 
-<!-- ====== ALERTAS DE ESTOQUE BAIXO ====== -->
-<div class="row g-3 mb-4">
-  <div class="col-12">
-    <div class="card shadow-sm border-0">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="m-0">⚠️ Químicos com estoque baixo</h6>
-          <small class="text-muted">Crítico &lt; 20 | Alerta &lt; 40</small>
-        </div>
-
-        <ng-container *ngIf="quimicosBaixoEstoque.length > 0; else nenhumBaixo">
-          <div class="d-flex flex-wrap gap-2">
-            <div
-              *ngFor="let q of quimicosBaixoEstoque"
-              class="border rounded px-3 py-2 d-flex flex-column gap-1"
-              [ngClass]="{
-                'border-danger-subtle bg-danger-subtle bg-opacity-10': q.nivel==='CRITICO',
-                'border-warning-subtle bg-warning-subtle bg-opacity-10': q.nivel==='ALERTA'
-              }"
-              style="min-width: 210px;"
-            >
-              <div class="d-flex justify-content-between align-items-center gap-2">
-                <span class="fw-semibold">{{ q.item.tipoQuimico }}</span>
-                <span class="badge" [ngClass]="getBadgeClass(q.nivel)">
-                  {{ q.nivel === 'CRITICO' ? 'Crítico' : 'Alerta' }}
-                </span>
-              </div>
-              <div class="small text-muted">
-                Fornecedor: {{ q.item.fornecedor?.nome || '—' }}
-              </div>
-              <div class="small">
-                Estoque: <strong>{{ q.item.estoqueInicial }}</strong> {{ q.item.unidade }}
-              </div>
-              <div class="small text-muted" *ngIf="q.item.estadoLocalArmazenamento">
-                Estado: {{ q.item.estadoLocalArmazenamento }}
-              </div>
-            </div>
-          </div>
-        </ng-container>
-
-        <ng-template #nenhumBaixo>
-          <p class="text-muted mb-0">✅ Nenhum químico abaixo de 40 no momento.</p>
-        </ng-template>
-      </div>
+<!-- ===== ESTOQUE BAIXO (químico a químico, só ATIVOS) ===== -->
+<div class="card shadow-sm border-0 mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="m-0">⚠️ Químicos com estoque baixo</h6>
+      <small class="text-muted">Crítico &lt; 20 | Alerta &lt; 40 | Somente ativos</small>
     </div>
+
+    <ng-container *ngIf="quimicosBaixoEstoque.length > 0; else nenhumBaixo">
+      <div class="d-flex flex-wrap gap-2">
+        <div
+          *ngFor="let qb of quimicosBaixoEstoque; trackBy: trackByLowStock"
+          class="border rounded px-3 py-2 d-flex flex-column gap-1"
+          [ngClass]="{
+            'border-danger-subtle bg-danger-subtle bg-opacity-10': qb.nivel==='CRITICO',
+            'border-warning-subtle bg-warning-subtle bg-opacity-10': qb.nivel==='ALERTA'
+          }"
+          style="min-width: 260px;"
+        >
+          <div class="d-flex justify-content-between align-items-center gap-2">
+            <span class="fw-semibold text-uppercase">{{ nomeOf(qb.item) }}</span>
+            <span class="badge" [ngClass]="getBadgeClass(qb.nivel)">
+              {{ qb.nivel === 'CRITICO' ? 'Crítico' : 'Alerta' }}
+            </span>
+          </div>
+
+          <div class="small text-muted">
+            Tipo: <strong>{{ tipoOf(qb.item) || '—' }}</strong>
+            <span class="mx-1">·</span>
+            UF: <strong>{{ formatEstado(ufOf(qb.item)) }}</strong>
+          </div>
+
+          <div class="small">
+            Estoque atual: <strong>{{ fmt(qb.estoqueAtual) }}</strong>
+            <span *ngIf="loteOf(qb.item)" class="text-muted"> · Lote: {{ loteOf(qb.item) }}</span>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #nenhumBaixo>
+      <p class="text-muted mb-0">✅ Nenhum químico ativo abaixo de 40 no momento.</p>
+    </ng-template>
   </div>
 </div>
 
-<!-- ====== LISTAGEM AGRUPADA (tipo x estado) ====== -->
-<div class="card shadow-sm border-0">
+<!-- ===== VALIDADE PRÓXIMA (somente ATIVOS) ===== -->
+<div class="card shadow-sm border-0 mb-4">
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h6 class="m-0">📦 Estoque consolidado por tipo e região</h6>
-      <small class="text-muted">{{ estoqueAgrupado.length }} registros</small>
+      <h6 class="m-0">⏳ Químicos com validade próxima</h6>
+      <small class="text-muted">
+        ≤ 60 dias <span class="badge bg-warning-subtle text-warning border border-warning ms-1">Alerta</span> ·
+        ≤ 30 dias <span class="badge bg-danger-subtle text-danger border border-danger ms-1">Crítico</span>
+      </small>
     </div>
 
-    <div class="row g-3">
-      <div
-        class="col-12 col-md-6 col-lg-4"
-        *ngFor="let e of estoqueAgrupado"
-      >
-        <div class="border rounded p-3 h-100 bg-light-subtle">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <span class="fw-semibold text-uppercase">{{ e.tipoQuimico }}</span>
-            <span class="badge bg-secondary-subtle text-secondary border border-secondary">
-              {{ formatEstado(e.estadoLocalArmazenamento) }}
+    <ng-container *ngIf="quimicosVencimento.length > 0; else nenhumVenc">
+      <div class="d-flex flex-wrap gap-2">
+        <div
+          *ngFor="let v of quimicosVencimento; trackBy: trackByVenc"
+          class="border rounded px-3 py-2 d-flex flex-column gap-1"
+          [ngClass]="{
+            'border-danger-subtle bg-danger-subtle bg-opacity-10': v.nivel==='CRITICO',
+            'border-warning-subtle bg-warning-subtle bg-opacity-10': v.nivel==='ALERTA'
+          }"
+          style="min-width: 260px;"
+        >
+          <div class="d-flex justify-content-between align-items-center gap-2">
+            <span class="fw-semibold text-uppercase">{{ tipoOf(v.item) || '—' }}</span>
+            <span class="badge" [ngClass]="getVencClass(v.nivel)">
+              {{ v.nivel === 'CRITICO' ? 'Crítico' : 'Alerta' }}
             </span>
           </div>
-          <div class="d-flex flex-column">
-            <span class="text-muted small mb-1">Estoque total</span>
-            <span class="fs-5 fw-bold">{{ e.estoqueTotal }}</span>
+
+          <div class="small text-muted">
+            Lote: {{ loteOf(v.item) || '—' }}
+            <span *ngIf="fornecedorNomeOf(v.item)"> · {{ fornecedorNomeOf(v.item) }}</span>
+          </div>
+
+          <div class="small">
+            Validade: <strong>{{ dateYMD(v.item?.dataValidade) }}</strong>
+          </div>
+
+          <div class="small">
+            {{ labelDias(v.diasRestantes) }}
           </div>
         </div>
       </div>
+    </ng-container>
 
-      <div *ngIf="!carregando && estoqueAgrupado.length === 0" class="col-12">
+    <ng-template #nenhumVenc>
+      <p class="text-muted mb-0">✅ Nenhum químico ativo com validade a vencer em até 60 dias.</p>
+    </ng-template>
+  </div>
+</div>
+
+<!-- ===== CONSOLIDADO POR REGIÃO (UF) ===== -->
+<div class="card shadow-sm border-0">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="m-0">📦 Estoque consolidado por região</h6>
+      <small class="text-muted">{{ consolidadoPorUF.length }} UFs</small>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-12 col-md-6 col-lg-4" *ngFor="let uf of consolidadoPorUF; trackBy: trackByUF">
+        <div class="uf-card h-100">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="uf-chip">{{ uf.uf }}</div>
+            <div class="uf-total">Total: {{ fmt(uf.totalUF) }}</div>
+          </div>
+
+          <ul class="list-unstyled m-0 d-flex flex-column gap-1">
+            <li *ngFor="let linha of uf.linhas; trackBy: trackByLinha" class="d-flex justify-content-between align-items-center tipo-row">
+              <span class="tipo-nome">{{ linha.tipo }}</span>
+              <span class="tipo-qtd">{{ fmt(linha.estoque) }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div *ngIf="!carregando && consolidadoPorUF.length === 0" class="col-12">
         <p class="text-muted mb-0">Nenhum dado consolidado de estoque foi encontrado.</p>
       </div>
     </div>

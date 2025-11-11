@@ -27,6 +27,7 @@ export class VeiculoComponent implements OnInit {
   // listagem e filtros
   todos: VeiculoDTO[] = [];
   filtroPlaca = '';
+  filtroApelido = '';                        // <== NOVO FILTRO
   filtroStatus: StatusVeiculos | '' = '';
   filtroTipo:   TipoVeiculo   | '' = '';
 
@@ -38,6 +39,7 @@ export class VeiculoComponent implements OnInit {
   // form model
   novo: VeiculoDTO = {
     placa: '',
+    apelido: '',                            
     status: 'ATIVO',
     tipoVeiculo: 'LEVE',
     anoVeiculo: undefined
@@ -51,26 +53,37 @@ export class VeiculoComponent implements OnInit {
   // lista filtrada (client-side)
   get filtrados(): VeiculoDTO[] {
     const placa = this.filtroPlaca.trim().toUpperCase();
+    const apel  = this.filtroApelido.trim().toLowerCase();
     const st = this.filtroStatus;
     const tp = this.filtroTipo;
+
     return this.todos.filter(v => {
-      const okPlaca  = !placa || v.placa?.toUpperCase().includes(placa);
-      const okStatus = !st    || v.status === st;
-      const okTipo   = !tp    || v.tipoVeiculo === tp;
-      return okPlaca && okStatus && okTipo;
+      const okPlaca   = !placa || v.placa?.toUpperCase().includes(placa);
+      const okApelido = !apel  || (v.apelido ?? '').toLowerCase().includes(apel);
+      const okStatus  = !st    || v.status === st;
+      const okTipo    = !tp    || v.tipoVeiculo === tp;
+      return okPlaca && okApelido && okStatus && okTipo;
     });
   }
 
   carregar(): void {
     this.carregando = true; this.erro = null;
     this.api.listar().subscribe({
-      next: rows => { this.todos = rows.map(r => ({ ...r, placa: r.placa?.toUpperCase() })); this.carregando = false; },
+      next: rows => {
+        this.todos = rows.map(r => ({
+          ...r,
+          placa: r.placa?.toUpperCase(),
+          apelido: (r.apelido ?? '').trim()
+        }));
+        this.carregando = false;
+      },
       error: e => { this.erro = 'Falha ao carregar veículos.'; console.error(e); this.carregando = false; }
     });
   }
 
   limparFiltros(): void {
     this.filtroPlaca = '';
+    this.filtroApelido = '';
     this.filtroStatus = '';
     this.filtroTipo = '';
   }
@@ -79,14 +92,20 @@ export class VeiculoComponent implements OnInit {
   abrirFormCriar(): void {
     this.editando = false;
     this.placaEmEdicao = null;
-    this.novo = { placa: '', status: 'ATIVO', tipoVeiculo: 'LEVE', anoVeiculo: undefined };
+    this.novo = { placa: '', apelido: '', status: 'ATIVO', tipoVeiculo: 'LEVE', anoVeiculo: undefined };
     this.mostrarForm = true;
   }
 
   abrirFormEditar(v: VeiculoDTO): void {
     this.editando = true;
     this.placaEmEdicao = v.placa;
-    this.novo = { placa: v.placa, status: v.status, tipoVeiculo: v.tipoVeiculo, anoVeiculo: v.anoVeiculo };
+    this.novo = {
+      placa: v.placa,
+      apelido: v.apelido ?? '',
+      status: v.status,
+      tipoVeiculo: v.tipoVeiculo,
+      anoVeiculo: v.anoVeiculo
+    };
     this.mostrarForm = true;
   }
 
@@ -104,6 +123,7 @@ export class VeiculoComponent implements OnInit {
 
     const payload: VeiculoDTO = {
       placa: this.novo.placa.trim().toUpperCase(),
+      apelido: this.novo.apelido.trim(),                 // <== ENVIAR SEMPRE (NotBlank no back)
       status: this.novo.status,
       tipoVeiculo: this.novo.tipoVeiculo,
       anoVeiculo: this.novo.anoVeiculo ?? null
@@ -113,7 +133,11 @@ export class VeiculoComponent implements OnInit {
       // criar
       this.api.criar(payload).subscribe({
         next: created => {
-          this.todos = [{ ...created, placa: created.placa.toUpperCase() }, ...this.todos];
+          this.todos = [{
+            ...created,
+            placa: created.placa.toUpperCase(),
+            apelido: (created.apelido ?? '').trim()
+          }, ...this.todos];
           this.salvando = false;
           this.mostrarForm = false;
           form.resetForm();
@@ -125,7 +149,11 @@ export class VeiculoComponent implements OnInit {
       const placa = this.placaEmEdicao!;
       this.api.atualizar(placa, payload).subscribe({
         next: updated => {
-          this.todos = this.todos.map(v => v.placa === placa ? { ...updated, placa: updated.placa.toUpperCase() } : v);
+          this.todos = this.todos.map(v => v.placa === placa ? {
+            ...updated,
+            placa: updated.placa.toUpperCase(),
+            apelido: (updated.apelido ?? '').trim()
+          } : v);
           this.salvando = false;
           this.mostrarForm = false;
           this.editando = false;

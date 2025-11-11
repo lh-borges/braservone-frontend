@@ -27,11 +27,6 @@
               </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link" [class.active]="activeTab==='graficos'" (click)="setTab('graficos')" type="button">
-                Gráficos
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
               <button class="nav-link" [class.active]="activeTab==='estoque'" (click)="setTab('estoque')" type="button">
                 Estoque Atual
               </button>
@@ -139,6 +134,12 @@
                       </div>
 
                       <div class="col-md-3">
+                        <label for="dataValidade" class="form-label">Data de validade</label>
+                        <input id="dataValidade" type="date" class="form-control"
+                               [(ngModel)]="novo.dataValidadeDateInput" />
+                      </div>
+
+                      <div class="col-md-3">
                         <label for="statusQuimicos" class="form-label">Status *</label>
                         <select id="statusQuimicos" class="form-select" [(ngModel)]="novo.statusQuimicos">
                           <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
@@ -188,10 +189,10 @@
                           <th>Tipo</th>
                           <th>Fornecedor</th>
                           <th>Lote</th>
-                          <th>Unidade</th>
-                          <th>Estoque</th>
+                          <th>Estoque inicial</th> <!-- concatena quantidade + unidade -->
                           <th>Valor</th>
                           <th>Data compra</th>
+                          <th>Validade</th>
                           <th>Estado</th>
                           <th>Obs.</th>
                           <th class="text-end">Ações</th>
@@ -203,10 +204,10 @@
                           <td>{{ q.tipoQuimico }}</td>
                           <td>{{ q.fornecedor?.nome || '-' }}</td>
                           <td>{{ q.lote || '-' }}</td>
-                          <td>{{ q.unidade }}</td>
-                          <td>{{ q.estoqueInicial }}</td>
+                          <td class="text-nowrap">{{ fmtEstoque(q) }}</td>
                           <td>{{ q.valorQuimico ?? '-' }}</td>
                           <td>{{ q.dataCompra ? (q.dataCompra | date: 'yyyy-MM-dd') : '-' }}</td>
+                          <td>{{ q.dataValidade ? (q.dataValidade | date: 'yyyy-MM-dd') : '-' }}</td>
                           <td>{{ q.estadoLocalArmazenamento || '-' }}</td>
                           <td>
                             <span class="d-inline-block text-truncate" style="max-width: 140px;"
@@ -235,14 +236,6 @@
               <div *ngIf="loadingMovCmp" class="text-muted">Carregando movimentação...</div>
               <ng-container *ngIf="movCmpType">
                 <ng-container *ngComponentOutlet="movCmpType"></ng-container>
-              </ng-container>
-            </div>
-
-            <!-- ============= GRÁFICOS (LAZY) ============= -->
-            <div *ngSwitchCase="'graficos'">
-              <div *ngIf="loadingGrafCmp" class="text-muted">Carregando gráficos...</div>
-              <ng-container *ngIf="grafCmpType">
-                <ng-container *ngComponentOutlet="grafCmpType"></ng-container>
               </ng-container>
             </div>
 

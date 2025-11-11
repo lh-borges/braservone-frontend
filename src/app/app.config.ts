@@ -9,9 +9,11 @@ import {
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 
+// HTTP
 import {
   provideHttpClient,
-  withInterceptorsFromDi,
+  withInterceptorsFromDi, // suporta interceptors de classe (Auth)
+  withInterceptors,       // suporta interceptors funcionais (apiError)
   HTTP_INTERCEPTORS,
 } from '@angular/common/http';
 
@@ -26,41 +28,52 @@ import { AUTH_FEATURE_KEY } from './auth/state/auth.state';
 // Meta-reducer de persistência (root)
 import { authMetaReducers } from './auth/state/persist.metareducer';
 
-// Interceptors (⚠️ sem acento no path!)
+// Interceptors
 import { AuthInterceptor } from './login/interceptor/auth-interceptor';
-import { ErrorInterceptor } from './paginacao/interceptor/erro';
+// ❌ REMOVIDO: ErrorInterceptor class-based (evita conflito)
+// import { ErrorInterceptor } from './paginacao/interceptor/erro';
+import { apiErrorInterceptor } from './core/interceptor/api-error.interceptor';
 
-// Actions para hidratação
+// NgRx boot action
 import { Store } from '@ngrx/store';
 import { initAuth } from './auth/state/app.action';
 
+// APP_INITIALIZER deve retornar void/Promise<void>
 function initAuthFactory() {
   const store = inject(Store);
-  return () => store.dispatch(initAuth());
+  return () => { store.dispatch(initAuth()); };
 }
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    // Router primeiro, vida em paz com navegação inicial
-    provideZoneChangeDetection({ eventCoalescing: true }),
+    // Router + Zone tweaks
+    provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
     provideRouter(routes),
 
     // --- NgRx root + feature (ordem importa)
-    // Root store com meta-reducers de persistência
     provideStore(undefined, { metaReducers: authMetaReducers }),
-    // Feature 'auth' (usa o AUTH_FEATURE_KEY)
     provideState(AUTH_FEATURE_KEY, authReducer),
     provideEffects(AuthEffects),
-
-    // Devtools só em dev
     ...(isDevMode() ? [provideStoreDevtools()] : []),
 
-    // --- HTTP + Interceptors (ordem: Auth -> Error)
-    provideHttpClient(withInterceptorsFromDi()),
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
+    // --- HTTP
+    // 1) withInterceptorsFromDi → pega interceptors de classe (AuthInterceptor)
+    // 2) withInterceptors([...]) → adiciona o interceptor funcional de erro
+    //    Colocado DEPOIS para que:
+    //      - no request: Auth rode antes (anexa token)
+    //      - no response: apiError rode primeiro (captura e normaliza erros)
+    provideHttpClient(
+      withInterceptorsFromDi(),
+      withInterceptors([apiErrorInterceptor]),
+    ),
 
-    // --- Hidratação de auth no boot (fail-closed se não houver storage)
+    // Interceptor de Auth via DI
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+
+    // ❌ Não registrar ErrorInterceptor class-based
+    // { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true },
+
+    // --- Hidratação de auth no boot
     { provide: APP_INITIALIZER, useFactory: initAuthFactory, multi: true },
   ],
 };

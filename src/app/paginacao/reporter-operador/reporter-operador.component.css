@@ -1,0 +1,162 @@
+/* ===== Tela inteira azul estilosa ===== */
+.screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+  padding: 24px;
+}
+
+/* ===== Cartão central (BRANCO, máx. 400px) ===== */
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border: 1px solid rgba(2, 6, 23, 0.10);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.18);
+  color: #0b1a3a;
+}
+
+.title {
+  margin: 0 0 12px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: .3px;
+  text-align: center;
+  color: #0b1a3a;
+}
+
+/* ===== Form ===== */
+.label {
+  display: block;
+  margin: 14px 0 6px;
+  font-size: .9rem;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid #d1d5db;          /* cinza-300 */
+  background: #fff;
+  color: #0b1a3a;
+  padding: 10px 12px;
+  border-radius: 10px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+  appearance: none;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+
+.input::placeholder { color: #9ca3af; } /* cinza-400 */
+
+.input:focus-visible {
+  border-color: #2563eb;              /* azul forte */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .20);
+  background: #fff;
+}
+
+.hint {
+  display: block;
+  margin-top: 6px;
+  font-size: .8rem;
+  color: #64748b;                     /* cinza-500 */
+}
+
+.actions { margin-top: 12px; }
+
+/* ===== Botão ===== */
+.btn {
+  width: 100%;
+  border: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: .2px;
+  cursor: pointer;
+  transition: transform .06s ease, filter .2s ease, opacity .2s ease;
+}
+
+.btn:disabled {
+  opacity: .7;
+  cursor: not-allowed;
+}
+
+.btn:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+/* ===== Estados ===== */
+.error {
+  margin-top: 6px;
+  color: #dc2626;                     /* vermelho 600 */
+  font-size: .85rem;
+}
+
+.ok {
+  margin-top: 10px;
+  color: #16a34a;                     /* verde 600 */
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+/* ===== Modal sem conflito com Bootstrap ===== */
+/* Troque no HTML: class="modal-backdrop" -> "reporter-overlay"
+                    class="modal"          -> "reporter-dialog"  */
+.reporter-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 12, 30, .6);
+  display: grid;
+  place-items: center;
+  z-index: 2000;                       /* acima do Bootstrap */
+  backdrop-filter: blur(2px);
+}
+
+.reporter-dialog {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  color: #0b1a3a;
+  border: 1px solid rgba(2, 6, 23, .12);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  text-align: center;
+  animation: pop .12s ease-out;
+  display: block;                      /* garante visível */
+}
+
+.reporter-dialog h2 {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0b1a3a;
+}
+
+.reporter-dialog p {
+  margin: 0 0 16px;
+  color: #0b1a3a;
+  line-height: 1.4;
+}
+
+.ok-btn {
+  width: 140px;
+  margin: 0 auto;
+  background: #2563eb;
+  color: #fff;
+}
+
+/* Pop-in do modal */
+@keyframes pop {
+  from { transform: scale(.96); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}

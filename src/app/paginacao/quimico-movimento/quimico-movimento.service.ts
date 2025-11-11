@@ -6,18 +6,31 @@ import { QuimicoDTO } from '../quimicos/quimico.service';
 
 export type TipoMov = 'ENTRADA' | 'SAIDA';
 
-export interface QuimicoRef { codigo: number; }
-export interface PocoRef { codigoAnp: string; }
+export interface QuimicoRef {
+  codigo: number;
+  lote?: string | null;
+  tipoQuimico?: string | null;            // nome/label do enum no back
+  estadoLocalArmazenamento?: string | null;
+}
+
+export interface PocoRef {
+  codigoAnp: string;
+  nomeCampo?: string | null;
+}
 
 export interface QuimicoMovimentoDTO {
   id: number;
   tipoMovimento: TipoMov;
-  qntMovimentada: string;   // BigDecimal como string
-  criadoEm: string;         // ISO
-  quimicoCodigo?: number | null;
-  pocoCodigoAnp?: string | null;
+  qntMovimentada: string;                 // BigDecimal como string
+  criadoEm: string;                       // ISO string
+
+  // Relacionados (vêm do back via JPA/Hibernate)
   quimico?: QuimicoRef | null;
   poco?: PocoRef | null;
+
+  // opcionais (se o back expuser via @Transient)
+  quimicoCodigo?: number | null;
+  pocoCodigoAnp?: string | null;
 }
 
 export interface RegistrarMovimentoPayload {
@@ -29,45 +42,89 @@ export interface RegistrarMovimentoPayload {
 
 @Injectable({ providedIn: 'root' })
 export class QuimicoMovimentoService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
   private readonly base = environment.apiBaseUrl;
+  private static readonly RESOURCE = '/api/movimentosquimicos';
 
-  /** Junta base + path sem duplicar barras */
   private url(path: string): string {
     const b = this.base.endsWith('/') ? this.base.slice(0, -1) : this.base;
     const p = path.startsWith('/') ? path : `/${path}`;
     return `${b}${p}`;
   }
 
-  /** Base real do controller (AJUSTE: caminho certo do backend) */
-  private readonly API = this.url('/api/movimentosquimicos');
+  private readonly API = this.url(QuimicoMovimentoService.RESOURCE);
 
-  /** GET /api/quimico-movimentos */
+  // ----------------- LISTAGENS -----------------
+
   listarTodos(): Observable<QuimicoMovimentoDTO[]> {
     return this.http.get<QuimicoMovimentoDTO[]>(this.API);
   }
 
-  /** GET /api/quimico-movimentos/poco/{codigoAnp} */
   listarPorPoco(pocoCodigoAnp: string): Observable<QuimicoMovimentoDTO[]> {
-    const id = encodeURIComponent(pocoCodigoAnp);
-    return this.http.get<QuimicoMovimentoDTO[]>(this.url(`/api/movimentosquimicos/poco/${id}`));
+    const id = encodeURIComponent((pocoCodigoAnp ?? '').trim());
+    return this.http.get<QuimicoMovimentoDTO[]>(`${this.API}/poco/${id}`);
   }
 
-  /** GET /api/quimico-movimentos/quimico/{codigo} */
   listarPorQuimico(quimicoCodigo: number): Observable<QuimicoMovimentoDTO[]> {
-    return this.http.get<QuimicoMovimentoDTO[]>(this.url(`/api/movimentosquimicos/quimico/${quimicoCodigo}`));
+    return this.http.get<QuimicoMovimentoDTO[]>(`${this.API}/quimico/${quimicoCodigo}`);
   }
 
-  /** GET /api/quimico-movimentos/tipo/{tipo}  (tipo = ENTRADA|SAIDA) */
-  listarPorTipo(tipo: TipoMov): Observable<QuimicoMovimentoDTO[]> {
+  listarPorTipoQuimico(tipoQuimico: string): Observable<QuimicoMovimentoDTO[]> {
+    const t = encodeURIComponent(tipoQuimico);
+    return this.http.get<QuimicoMovimentoDTO[]>(`${this.API}/tipo/${t}`);
+  }
+
+  listarPorTipoMovimento(tipo: TipoMov): Observable<QuimicoMovimentoDTO[]> {
     const t = encodeURIComponent(tipo);
-    return this.http.get<QuimicoMovimentoDTO[]>(this.url(`/api/movimentosquimicos/tipo/${t}`));
+    return this.http.get<QuimicoMovimentoDTO[]>(`${this.API}/tipo-movimento/${t}`);
   }
 
-  /** POST /api/quimico-movimentos  (payload com nomes esperados pelo backend) */
+  // ----------------- REGISTRO -----------------
+
   registrar(payload: RegistrarMovimentoPayload): Observable<QuimicoMovimentoDTO> {
     return this.http.post<QuimicoMovimentoDTO>(this.API, payload);
   }
+
+  registrarFromFields(args: {
+    quimicoCodigo: number;
+    pocoCodigoAnp: string;
+    tipo: TipoMov;
+    quantidade: number | string;
+  }): Observable<QuimicoMovimentoDTO> {
+    const quantidade =
+      typeof args.quantidade === 'number'
+        ? this.toFixed6(args.quantidade)
+        : this.normalizeFixed6(args.quantidade);
+
+    const pocoCodigoAnp = (args.pocoCodigoAnp ?? '').trim();
+
+    return this.registrar({
+      quimicoCodigo: args.quimicoCodigo,
+      pocoCodigoAnp,
+      tipo: args.tipo,
+      quantidade,
+    });
+  }
+
+  // ----------------- DELETE -----------------
+
+  deletar(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API}/${id}`);
+  }
+
+  // ----------------- APOIO -----------------
+
+  private toFixed6(n: number): string {
+    return n.toFixed(6);
+  }
+
+  private normalizeFixed6(s: string): string {
+    const clean = s.trim().replace(',', '.');
+    const num = Number(clean);
+    return Number.isFinite(num) ? num.toFixed(6) : clean;
+  }
+
+  // ----------------- SUPORTE A OUTRAS TELAS -----------------
 
   /** GET /api/quimicos/lite  */
   listarTodosLite(): Observable<Array<Pick<QuimicoDTO, 'codigo' | 'lote' | 'tipoQuimico' | 'fornecedor'>>> {

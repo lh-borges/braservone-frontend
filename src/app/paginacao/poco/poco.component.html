@@ -1,3 +1,5 @@
+<!-- src/app/paginacao/poco/poco.component.html -->
+
 <div class="alert alert-success floating-alert" *ngIf="alertSucess" role="alert">
   Operação concluída com sucesso.
 </div>
@@ -27,7 +29,7 @@
         <div class="col-12">
           <div class="bg-white border rounded-3 shadow-sm p-4 m-3 position-sticky filter-sticky">
             <div class="row g-2 align-items-end">
-              <!-- Busca local na página atual -->
+              <!-- Busca local -->
               <div class="col-12 col-lg-6">
                 <label for="searchPocos" class="form-label mb-1 h5 fw-semibold">Pesquisar poços (na página atual)</label>
                 <div class="input-group">
@@ -67,7 +69,7 @@
                 </select>
               </div>
 
-              <!-- Contador + carregando -->
+              <!-- Info -->
               <div class="col-12 col-lg-2 text-lg-end">
                 <small class="text-muted d-block" *ngIf="!loading && totalElements > 0">
                   Mostrando {{ firstItemIndex() }}–{{ lastItemIndex() }} de {{ totalElements }}
@@ -76,7 +78,7 @@
               </div>
             </div>
 
-            <!-- Navegação de páginas -->
+            <!-- Navegação -->
             <div class="row mt-2">
               <div class="col d-flex gap-2 justify-content-end">
                 <button class="btn btn-outline-secondary" (click)="goPrev()" [disabled]="!canPrev()">
@@ -95,14 +97,16 @@
           </div>
         </div>
 
-        <!-- Lista -->
+        <!-- Cards -->
         <div class="col-12">
           <div class="row g-3 px-3 pb-4 bg-light">
             <ng-container *ngFor="let p of filteredPocos; trackBy: trackByCod">
               <div class="col-md-3 col-sm-6">
                 <div class="card h-100 shadow-sm border-0">
                   <div class="card-body">
-                    <h5 class="card-title fw-bold text-primary">{{ p.codANP }}</h5>
+                    <h5 class="card-title fw-bold text-primary">
+                      {{ p.codigoAnp }}
+                    </h5>
                     <p class="card-text text-muted small mb-4">
                       Bacia: {{ p.bacia || '—' }}<br />
                       Campo: {{ p.nomeCampo || '—' }}<br />
@@ -119,12 +123,9 @@
                       <button
                         class="btn btn-sm btn-outline-danger"
                         (click)="delete(p)"
-                        [disabled]="deleting.has(getCodigo(p))"
-                      >
-                        <span
-                          *ngIf="deleting.has(getCodigo(p))"
-                          class="spinner-border spinner-border-sm me-1"
-                        ></span>
+                        [disabled]="deleting.has(getCodigo(p))">
+                        <span *ngIf="deleting.has(getCodigo(p))"
+                              class="spinner-border spinner-border-sm me-1"></span>
                         Excluir
                       </button>
                     </div>
@@ -133,7 +134,6 @@
               </div>
             </ng-container>
 
-            <!-- Vazio -->
             <div class="col-12" *ngIf="!loading && filteredPocos.length === 0">
               <div class="border rounded-3 bg-white p-4 text-center text-muted">
                 Nenhum poço corresponde à pesquisa.
@@ -141,12 +141,12 @@
             </div>
           </div>
         </div>
-      </div> <!-- /row -->
-    </div> <!-- /container-fluid -->
+      </div> <!-- row -->
+    </div> <!-- container-fluid -->
   </main>
 </div>
 
-<!-- Modal: Criar/Editar -->
+<!-- Modal Criar/Editar Poço -->
 <div
   class="modal fade show d-block createPoco"
   tabindex="-1"
@@ -158,7 +158,9 @@
     <div class="modal-content">
       <form #addForm="ngForm" (ngSubmit)="$event.preventDefault()">
         <div class="modal-header bg-primary">
-          <h5 class="modal-title text-white">{{ adicionar ? 'Novo Poço' : 'Editar Poço' }}</h5>
+          <h5 class="modal-title text-white">
+            {{ adicionar ? 'Novo Poço' : 'Editar Poço' }}
+          </h5>
           <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
         </div>
 
@@ -166,7 +168,7 @@
           <!-- Linha 1 -->
           <div class="row g-3">
             <div class="col-md-4">
-              <label for="codigoAnp" class="form-label">Código ANP</label>
+              <label for="codigoAnp" class="form-label">Código ANP *</label>
               <input
                 id="codigoAnp"
                 name="codigoAnp"
@@ -176,19 +178,30 @@
                 maxlength="64"
                 placeholder="Ex.: 7-CARM-103-SE"
               />
-              <div class="text-danger small" *ngIf="(addForm.submitted) && !newPoco.codigoAnp">
+              <div class="text-danger small" *ngIf="addForm.submitted && !newPoco.codigoAnp">
                 Informe o código ANP.
               </div>
             </div>
 
             <div class="col-md-4">
               <label for="nomeCampo" class="form-label">Nome do Campo</label>
-              <input id="nomeCampo" name="nomeCampo" class="form-control" [(ngModel)]="newPoco.nomeCampo" maxlength="120" placeholder="Ex.: Carmópolis" />
+              <input
+                id="nomeCampo"
+                name="nomeCampo"
+                class="form-control"
+                [(ngModel)]="newPoco.nomeCampo"
+                maxlength="120"
+                placeholder="Ex.: Carmópolis"
+              />
             </div>
 
             <div class="col-md-4">
               <label for="bacia" class="form-label">Bacia (opcional)</label>
-              <select id="bacia" name="bacia" class="form-select" [(ngModel)]="newPoco.bacia">
+              <select
+                id="bacia"
+                name="bacia"
+                class="form-select"
+                [(ngModel)]="newPoco.bacia">
                 <option [ngValue]="undefined">Selecione...</option>
                 <option *ngFor="let b of bacias" [ngValue]="b">{{ b }}</option>
               </select>
@@ -197,25 +210,56 @@
 
           <!-- Linha 2 -->
           <div class="row g-3 mt-1">
-            <div class="col-md-4">
-              <label for="status" class="form-label">Status (opcional)</label>
-              <select id="status" name="status" class="form-select" [(ngModel)]="newPoco.status">
+            <div class="col-md-3">
+              <label for="status" class="form-label">Status</label>
+              <select
+                id="status"
+                name="status"
+                class="form-select"
+                [(ngModel)]="newPoco.status">
                 <option [ngValue]="undefined">Selecione...</option>
                 <option *ngFor="let s of statusList" [ngValue]="s">{{ s }}</option>
               </select>
             </div>
 
-            <div class="col-md-4">
-              <label for="fluido" class="form-label">Fluido (opcional)</label>
-              <select id="fluido" name="fluido" class="form-select" [(ngModel)]="newPoco.fluido">
+            <div class="col-md-3">
+              <label for="fluido" class="form-label">Fluido</label>
+              <select
+                id="fluido"
+                name="fluido"
+                class="form-select"
+                [(ngModel)]="newPoco.fluido">
                 <option [ngValue]="undefined">Selecione...</option>
                 <option *ngFor="let f of fluidos" [ngValue]="f.value">{{ f.label }}</option>
               </select>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
               <label for="local" class="form-label">Local</label>
-              <input id="local" name="local" class="form-control" [(ngModel)]="newPoco.local" maxlength="120" placeholder="Ex.: Carmópolis/SE" />
+              <input
+                id="local"
+                name="local"
+                class="form-control"
+                [(ngModel)]="newPoco.local"
+                maxlength="120"
+                placeholder="Ex.: Carmópolis/SE"
+              />
+            </div>
+
+            <div class="col-md-3">
+              <label for="tipoPoco" class="form-label">Tipo de Poço *</label>
+              <select
+                id="tipoPoco"
+                name="tipoPoco"
+                class="form-select"
+                [(ngModel)]="newPoco.tipoPoco"
+                required>
+                <option [ngValue]="undefined">Selecione...</option>
+                <option *ngFor="let t of tipoPocoOptions" [ngValue]="t">{{ t }}</option>
+              </select>
+              <div class="text-danger small" *ngIf="addForm.submitted && !newPoco.tipoPoco">
+                Selecione o tipo do poço.
+              </div>
             </div>
           </div>
 
@@ -253,15 +297,27 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Cancelar</button>
+          <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">
+            Cancelar
+          </button>
 
-          <button *ngIf="adicionar" type="button" class="btn btn-primary" (click)="adicionarPoco()" [disabled]="saving">
-            <span *ngIf="saving" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          <button
+            *ngIf="adicionar"
+            type="button"
+            class="btn btn-primary"
+            (click)="adicionarPoco()"
+            [disabled]="saving">
+            <span *ngIf="saving" class="spinner-border spinner-border-sm me-1"></span>
             {{ saving ? 'Salvando...' : 'Salvar' }}
           </button>
 
-          <button *ngIf="edit" type="button" class="btn btn-warning" (click)="editarPoco()" [disabled]="saving">
-            <span *ngIf="saving" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          <button
+            *ngIf="edit"
+            type="button"
+            class="btn btn-warning"
+            (click)="editarPoco()"
+            [disabled]="saving">
+            <span *ngIf="saving" class="spinner-border spinner-border-sm me-1"></span>
             {{ saving ? 'Editando...' : 'Editar' }}
           </button>
         </div>
@@ -270,7 +326,7 @@
   </div>
 </div>
 
-<!-- Modal: Importar do CSV (multi-linhas) -->
+<!-- Modal Import CSV -->
 <div
   class="modal fade show d-block"
   tabindex="-1"
@@ -289,30 +345,34 @@
         <div class="modal-body">
           <div class="alert alert-light small">
             Ordem esperada dos campos:
-            <code>codigoAnp;nomeCampo;bacia;status;fluido;local;latitude;longitude</code><br />
-            Aceita <b>;</b> ou <b>,</b> como separador. Ex.:<br />
-            <code>7-CARM-103-SE;Carmópolis;SERGIPE_ALAGOAS;PRODUZINDO;OLEO_LEVE;Carmópolis/SE;-10.123456;-36.543210</code><br>
-            Dica: cole várias linhas, uma por linha.
+            <code>codigoAnp;nomeCampo;bacia;status;fluido;local;latitude;longitude;tipoPoco</code><br />
+            Aceita <b>;</b> ou <b>,</b> como separador.
           </div>
 
           <label class="form-label">Linhas CSV</label>
-          <textarea class="form-control"
-                    rows="10"
-                    [(ngModel)]="csvText"
-                    name="csvText"
-                    placeholder="Cole aqui várias linhas no formato esperado..."></textarea>
+          <textarea
+            class="form-control"
+            rows="10"
+            [(ngModel)]="csvText"
+            name="csvText"
+            placeholder="Cole aqui várias linhas no formato esperado..."></textarea>
 
           <div class="text-danger mt-2" *ngIf="csvError">{{ csvError }}</div>
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" (click)="closeImport()" [disabled]="importing">
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            (click)="closeImport()"
+            [disabled]="importing">
             Cancelar
           </button>
-          <button type="button"
-                  class="btn btn-success"
-                  (click)="addFromCsvText()"
-                  [disabled]="importing || !(csvText && csvText.trim())">
+          <button
+            type="button"
+            class="btn btn-success"
+            (click)="addFromCsvText()"
+            [disabled]="importing || !(csvText && csvText.trim())">
             <span *ngIf="importing" class="spinner-border spinner-border-sm me-1"></span>
             {{ importing ? 'Importando...' : 'Importar' }}
           </button>

@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 // ajuste o caminho do environment conforme seu projeto:
 import { environment } from '../../../environments/environment';
@@ -10,6 +10,7 @@ export type TipoVeiculo =
 
 export interface VeiculoDTO {
   placa: string;
+  apelido: string;                 // <== NOVO CAMPO
   status: StatusVeiculos;
   tipoVeiculo: TipoVeiculo;
   anoVeiculo?: number | null;
@@ -28,7 +29,6 @@ export class VeiculoService {
   }
 
   listar(): Observable<VeiculoDTO[]> {
-    alert(this.url('teste'));
     return this.http.get<VeiculoDTO[]>(this.url('/api/veiculos'));
   }
 
@@ -36,7 +36,6 @@ export class VeiculoService {
     return this.http.post<VeiculoDTO>(this.url('/api/veiculos'), payload);
   }
 
-  // útil se quiser buscar individualmente pela placa
   buscar(placa: string): Observable<VeiculoDTO> {
     return this.http.get<VeiculoDTO>(this.url(`/api/veiculos/${encodeURIComponent(placa)}`));
   }
@@ -45,8 +44,7 @@ export class VeiculoService {
     return this.http.delete<void>(this.url(`/api/veiculos/${encodeURIComponent(placa)}`));
   }
 
-  // veiculo.service.ts
-atualizar(placa: string, payload: VeiculoDTO) {
-  return this.http.put<VeiculoDTO>(this.url(`/api/veiculos/${encodeURIComponent(placa)}`), payload);
-}
+  atualizar(placa: string, payload: VeiculoDTO): Observable<VeiculoDTO> {
+    return this.http.put<VeiculoDTO>(this.url(`/api/veiculos/${encodeURIComponent(placa)}`), payload);
+  }
 }

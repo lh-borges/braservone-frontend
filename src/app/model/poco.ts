@@ -1,14 +1,20 @@
+// src/app/model/poco.ts
 export interface Poco {
   codigoAnp: string;
 
+  /**
+   * Mapeia diretamente o enum TipoPoco do backend:
+   * POCO_EXPLORATORIO_PIONEIRO, POCO_EXPLORATORIO_ESTRATIGRAFICO, ...
+   */
+  tipoPoco?: string; // obrigatório na criação/edição; opcional aqui p/ não quebrar dados antigos
+
   // campos do modelo enxuto
   nomeCampo?: string;
-  bacia?: string;        // ou enum 'Bacia' se você tipar
-  status?: string;       // ou enum 'StatusPoco'
-  fluido?: string;       // ou enum 'TipoFluido'
+  bacia?: string;        // enum Bacia no back
+  status?: string;       // enum StatusPoco
+  fluido?: string;       // enum TipoFluido
   local?: string;
 
-  // use number ou string conforme sua preferência; se vier BigDecimal no back, mantenha number no front
   latitude?: number | null;
   longitude?: number | null;
 }

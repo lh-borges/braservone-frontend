@@ -1,229 +1,268 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import {
   QuimicoMovimentoService,
   TipoMov,
   QuimicoMovimentoDTO,
-  RegistrarMovimentoPayload
-} from '../quimico-movimento/quimico-movimento.service';
+} from './quimico-movimento.service';
 
-import { QuimicoService, QuimicoDTO, TipoQuimico } from '../quimicos/quimico.service';
+import { QuimicoService, QuimicoDTO } from '../quimicos/quimico.service';
 import { PocoService, PocoLite } from '../poco/poco.service';
-import { forkJoin, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
 
-interface MovForm {
-  quimicoCodigo?: number;
-  pocoCodigoAnp?: string;
-  tipo?: TipoMov;
-  quantidade?: string | number;
-}
-type MovRow = QuimicoMovimentoDTO & { lote?: string | null; tipoQuimico?: TipoQuimico };
+type QuimicoLite = {
+  codigo: number;
+  lote?: string | null;
+  tipoQuimico?: string | null;
+  estadoLocalArmazenamento?: string | null;
+};
+
+type MovRow = QuimicoMovimentoDTO;
 
 @Component({
   selector: 'app-quimico-movimento',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DatePipe],
   templateUrl: './quimico-movimento.component.html',
-  styleUrls: ['./quimico-movimento.component.css']
+  styleUrls: ['./quimico-movimento.component.css'],
 })
 export class QuimicoMovimentoComponent implements OnInit {
-  constructor(
-    private movService: QuimicoMovimentoService,
-    private quimicoService: QuimicoService,
-    private pocoService: PocoService
-  ) {}
+  private movSvc = inject(QuimicoMovimentoService);
+  private quimicoSvc = inject(QuimicoService);
+  private pocoSvc = inject(PocoService);
 
-  // estado/form
-  tiposMovimento: TipoMov[] = ['ENTRADA', 'SAIDA'];
-  movForm: MovForm = { quimicoCodigo: undefined, pocoCodigoAnp: '', tipo: undefined, quantidade: '' };
-  movSalvando = false;
   movLoading = false;
+  movSalvando = false;
   mostrarCadastro = false;
 
-  // filtros
-  selectedTipoQuimico?: TipoQuimico;
+  alertError = false;
+  alertErrorMsg = '';
+
+  selectedTipoQuimico?: string;
   selectedTipoMov?: TipoMov;
   loteQuery = '';
 
-  // listas
-  quimicosOptions: Array<Pick<QuimicoDTO, 'codigo' | 'tipoQuimico' | 'fornecedor' | 'lote'>> = [];
-  tiposOptions: TipoQuimico[] = [];
+  movForm: {
+    quimicoCodigo?: number;
+    pocoCodigoAnp: string | null;
+    tipo?: TipoMov;
+    quantidade?: number | string;
+  } = { pocoCodigoAnp: null };
+
+  quimicosOptions: QuimicoLite[] = [];
   pocosOptions: PocoLite[] = [];
-
-  // dados
-  private movimentos: QuimicoMovimentoDTO[] = [];
-  movRows: MovRow[] = []; // enriquecidos com lote/tipoQuimico
-
-  // maps auxiliares (codigoQuimico -> props)
-  private mapCodigoToLote = new Map<number, string | null>();
-  private mapCodigoToTipo = new Map<number, TipoQuimico>();
+  tiposOptions: string[] = [];
+  movRows: MovRow[] = [];
 
   ngOnInit(): void {
-    this.carregarListasReferencia();
+    this.preloadOptions();
   }
 
-  /** Carrega referências (químicos + poços) e prepara maps */
-  private carregarListasReferencia() {
-    this.movLoading = true;
-    forkJoin({
-      quimicos: this.quimicoService.listarAtivo().pipe(catchError(() => of([] as QuimicoDTO[]))),
-      pocos: this.pocoService.getAllPocosLite().pipe(catchError(() => of([] as PocoLite[])))
-    }).subscribe({
-      next: ({ quimicos, pocos }) => {
-        this.quimicosOptions = [...(quimicos ?? [])].sort((a, b) => (a.codigo ?? 0) - (b.codigo ?? 0));
-        this.pocosOptions = pocos ?? [];
+  // ============ LOAD DAS OPÇÕES ============
 
-        // construir maps e lista de tipos únicos
-        const tiposSet = new Set<TipoQuimico>();
-        for (const q of this.quimicosOptions) {
-          if (q.codigo != null) {
-            this.mapCodigoToLote.set(q.codigo, q.lote ?? null);
-            this.mapCodigoToTipo.set(q.codigo, q.tipoQuimico);
-          }
-          tiposSet.add(q.tipoQuimico);
-        }
-        this.tiposOptions = Array.from(tiposSet.values()).sort();
+  private preloadOptions(): void {
+    // Químicos (para o select)
+    this.quimicoSvc.listar().subscribe({
+      next: (list: QuimicoDTO[]) => {
+        const arr = list ?? [];
+        this.quimicosOptions = arr.map((q) => ({
+          codigo: q.codigo,
+          lote: q.lote ?? null,
+          tipoQuimico: (q as any).tipoQuimico ?? null,
+          estadoLocalArmazenamento: (q as any).estadoLocalArmazenamento ?? null,
+        }));
+
+        const tipos = new Set<string>();
+        this.quimicosOptions.forEach((q) => {
+          if (q.tipoQuimico) tipos.add(String(q.tipoQuimico));
+        });
+        this.tiposOptions = Array.from(tipos).sort();
       },
-      complete: () => (this.movLoading = false)
+      error: (e: unknown) => this.showError(e),
     });
-  }
 
-  /** Normaliza referências aninhadas e enriquece com lote/tipoQuimico */
-  private normalize(list: QuimicoMovimentoDTO[] | null | undefined): MovRow[] {
-    const arr = Array.isArray(list) ? list : [];
-    return arr.map(m => {
-      const quimicoCodigo = m.quimicoCodigo ?? m.quimico?.codigo ?? undefined;
-      const pocoCodigoAnp = m.pocoCodigoAnp ?? m.poco?.codigoAnp ?? '';
-      return {
-        ...m,
-        quimicoCodigo,
-        pocoCodigoAnp,
-        lote: quimicoCodigo != null ? this.mapCodigoToLote.get(quimicoCodigo) ?? null : null,
-        tipoQuimico: quimicoCodigo != null ? this.mapCodigoToTipo.get(quimicoCodigo) : undefined
-      };
-    });
-  }
-
-  /** Reaplica filtro por lote no array enriquecido */
-  get movRowsFiltrados(): MovRow[] {
-    const q = this.loteQuery.trim().toLowerCase();
-    if (!q) return this.movRows;
-    return this.movRows.filter(r => (r.lote ?? '').toLowerCase().includes(q));
-  }
-
-  // --------- Ações da toolbar ---------
-  carregarTodos() {
-    this.movLoading = true;
-    this.movService.listarTodos().subscribe({
-      next: lista => {
-        this.movimentos = lista ?? [];
-        this.movRows = this.normalize(this.movimentos);
-        this.ordenarPorDataDesc();
-        this.movLoading = false;
+    // Poços (lite)
+    this.pocoSvc.getAllPocosLite().subscribe({
+      next: (pocos: PocoLite[]) => {
+        this.pocosOptions = (pocos ?? []).map((p) => ({
+          codigoAnp: (p.codigoAnp ?? '').trim(),
+          nome: p.nome,
+        }));
       },
-      error: _ => { this.movimentos = []; this.movRows = []; this.movLoading = false; }
+      error: (e: unknown) => this.showError(e),
     });
   }
 
-  carregarMovPorPoco(codigoAnp?: string | null) {
-    const key = (codigoAnp ?? '').trim();
-    if (!key) return;
+  // ============ HELPERS DE FORM / VALIDAÇÃO ============
+
+  onPocoChange(v: string | null) {
+    const trimmed = (v ?? '').trim();
+    this.movForm.pocoCodigoAnp = trimmed.length ? trimmed : null;
+    console.debug('[MOV] pocoCodigoAnp selecionado =', this.movForm.pocoCodigoAnp);
+  }
+
+  private isKnownPoco(code: string): boolean {
+    const c = (code ?? '').trim();
+    return !!c && this.pocosOptions.some((p) => (p.codigoAnp ?? '').trim() === c);
+  }
+
+  // Helpers de exibição, compat nested/flatten
+  getLote(m: MovRow): string {
+    // se no futuro expor via @Transient, pode usar m.lote como fallback
+    return m.quimico?.lote ?? '-';
+  }
+
+  getTipoQuimico(m: MovRow): string {
+    return m.quimico?.tipoQuimico ?? '-';
+  }
+
+  getPocoCodigo(m: MovRow): string {
+    return m.poco?.codigoAnp ?? m.pocoCodigoAnp ?? '-';
+  }
+
+  // ============ AÇÕES (BUSCAS) ============
+
+  carregarTodos(): void {
     this.movLoading = true;
-    this.movService.listarPorPoco(key).subscribe({
-      next: lista => {
-        this.movRows = this.normalize(lista);
-        this.ordenarPorDataDesc();
-        this.movLoading = false;
-      },
-      error: _ => { this.movRows = []; this.movLoading = false; }
+    this.alertError = false;
+    this.movSvc.listarTodos().subscribe({
+      next: (rows) => (this.movRows = rows ?? []),
+      error: (e) => this.showError(e),
+      complete: () => (this.movLoading = false),
     });
   }
 
-  /** Por TIPO DE MOVIMENTO (ENTRADA|SAIDA) — usa endpoint /tipo/{tipo} */
-  carregarMovPorTipoMovimento(tipo?: TipoMov) {
-    if (!tipo) return;
-    this.movLoading = true;
-    this.movService.listarPorTipo(tipo).subscribe({
-      next: lista => {
-        this.movRows = this.normalize(lista);
-        this.ordenarPorDataDesc();
-        this.movLoading = false;
-      },
-      error: _ => { this.movRows = []; this.movLoading = false; }
-    });
-  }
+  carregarMovPorPoco(codigoAnp: string | null): void {
+    const code = (codigoAnp ?? '').trim();
+    if (!code) return;
 
-  /** Por TIPO DE QUÍMICO — client-side: pega códigos e faz forkJoin de /quimico/{codigo} */
-  carregarMovPorTipoQuimico(tipo?: TipoQuimico) {
-    if (!tipo) return;
-
-    // códigos dos químicos desse tipo
-    const codigos = this.quimicosOptions
-      .filter(q => q.tipoQuimico === tipo)
-      .map(q => q.codigo)
-      .filter((c): c is number => typeof c === 'number');
-
-    if (codigos.length === 0) {
-      this.movRows = [];
+    if (!this.isKnownPoco(code)) {
+      this.showError({ message: `Poço inexistente na lista carregada: "${code}"` });
       return;
     }
 
     this.movLoading = true;
-    forkJoin(codigos.map(c => this.movService.listarPorQuimico(c)))
-      .pipe(map(arrays => arrays.flat()))
+    this.alertError = false;
+    this.movSvc.listarPorPoco(code).subscribe({
+      next: (rows) => (this.movRows = rows ?? []),
+      error: (e) => this.showError(e),
+      complete: () => (this.movLoading = false),
+    });
+  }
+
+  carregarMovPorTipoQuimico(tipoQuimico?: string): void {
+    if (!tipoQuimico) return;
+    this.movLoading = true;
+    this.alertError = false;
+    this.movSvc.listarPorTipoQuimico(tipoQuimico).subscribe({
+      next: (rows) => (this.movRows = rows ?? []),
+      error: (e) => this.showError(e),
+      complete: () => (this.movLoading = false),
+    });
+  }
+
+  carregarMovPorTipoMovimento(tipo?: TipoMov): void {
+    if (!tipo) return;
+    this.movLoading = true;
+    this.alertError = false;
+    this.movSvc.listarPorTipoMovimento(tipo).subscribe({
+      next: (rows) => (this.movRows = rows ?? []),
+      error: (e) => this.showError(e),
+      complete: () => (this.movLoading = false),
+    });
+  }
+
+  // ============ AÇÃO: REGISTRAR ============
+
+  registrarMovimento(): void {
+    const quimicoCodigo = this.movForm.quimicoCodigo;
+    const pocoCodigoAnp = (this.movForm.pocoCodigoAnp ?? '').trim();
+    const tipo = this.movForm.tipo;
+    const quantidade = this.movForm.quantidade;
+
+    if (!quimicoCodigo || !pocoCodigoAnp || !tipo || quantidade == null) {
+      this.showError({ message: 'Preencha todos os campos obrigatórios.' });
+      return;
+    }
+
+    if (!this.isKnownPoco(pocoCodigoAnp)) {
+      this.showError({ message: `Poço inexistente na lista carregada: "${pocoCodigoAnp}"` });
+      return;
+    }
+
+    this.movSalvando = true;
+    this.alertError = false;
+
+    console.debug('[MOV] payload', { quimicoCodigo, pocoCodigoAnp, tipo, quantidade });
+
+    this.movSvc
+      .registrarFromFields({
+        quimicoCodigo,
+        pocoCodigoAnp,
+        tipo,
+        quantidade,
+      })
       .subscribe({
-        next: lista => {
-          this.movRows = this.normalize(lista);
-          this.ordenarPorDataDesc();
-          this.movLoading = false;
+        next: () => {
+          this.mostrarCadastro = false;
+          this.movForm = { pocoCodigoAnp: null };
+          this.carregarTodos();
         },
-        error: _ => { this.movRows = []; this.movLoading = false; }
+        error: (e) => this.showError(e),
+        complete: () => (this.movSalvando = false),
       });
   }
 
-  // --------- Cadastro ---------
-  registrarMovimento() {
-    const { quimicoCodigo, pocoCodigoAnp, tipo } = this.movForm;
-    const quantidadeVal = this.movForm.quantidade;
+  // ============ AÇÃO: DELETAR ============
 
-    if (!quimicoCodigo || !pocoCodigoAnp || !tipo || quantidadeVal === undefined || quantidadeVal === '') {
-      alert('Preencha Químico, Poço (código ANP), Tipo e Quantidade.');
-      return;
-    }
-    const qtdNum = typeof quantidadeVal === 'number' ? quantidadeVal : Number(quantidadeVal);
-    if (!isFinite(qtdNum) || qtdNum <= 0) { alert('Quantidade inválida.'); return; }
+  deletarMovimento(m: MovRow): void {
+    if (!m?.id) return;
 
-    const payload: RegistrarMovimentoPayload = {
-      quimicoCodigo: Number(quimicoCodigo),
-      pocoCodigoAnp: String(pocoCodigoAnp).trim(),
-      tipo: tipo!,
-      quantidade: qtdNum.toFixed(6)
-    };
+    const confirmado = confirm(`Confirmar exclusão do movimento #${m.id}?`);
+    if (!confirmado) return;
 
-    this.movSalvando = true;
-    this.movService.registrar(payload).subscribe({
-      next: salvo => {
-        const normalized = this.normalize([salvo]);
-        this.movRows = [...normalized, ...this.movRows];
-        this.ordenarPorDataDesc();
-        this.movForm.quantidade = '';
-        this.movSalvando = false;
-        this.mostrarCadastro = false;
+    this.movLoading = true;
+    this.alertError = false;
+
+    this.movSvc.deletar(m.id).subscribe({
+      next: () => {
+        this.movRows = this.movRows.filter((row) => row.id !== m.id);
       },
-      error: _ => this.movSalvando = false
+      error: (e) => this.showError(e),
+      complete: () => (this.movLoading = false),
     });
   }
 
-  private ordenarPorDataDesc() {
-    this.movRows.sort((a, b) => {
-      const da = new Date(a.criadoEm).getTime();
-      const db = new Date(b.criadoEm).getTime();
-      return isFinite(db - da) ? (db - da) : 0;
-    });
+  // ============ TABELA / FILTRO ============
+
+  trackMov = (_: number, m: MovRow): number => m.id;
+
+  get movRowsFiltrados(): MovRow[] {
+    const q = (this.loteQuery || '').trim().toLowerCase();
+    if (!q) return this.movRows;
+
+    return this.movRows.filter((m) =>
+      (m.quimico?.lote ?? '')
+        .toString()
+        .toLowerCase()
+        .includes(q),
+    );
   }
 
-  trackMov = (_: number, m: MovRow) => m.id;
+  // ============ ERROS ============
+
+  private showError(e: any): void {
+    const msg =
+      e?.mensage ??
+      e?.Mensage ??
+      e?.message ??
+      e?.error?.mensage ??
+      e?.error?.Mensage ??
+      e?.error?.message ??
+      'Erro ao processar a requisição.';
+    this.alertErrorMsg = msg;
+    this.alertError = true;
+    console.warn('[MOV] erro:', e);
+  }
 }

@@ -1,0 +1,91 @@
+<div class="screen">
+  <div class="card">
+    <h1 class="title">Reporte do Operador</h1>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <!-- Mensagem -->
+      <label class="label" for="mensagem">Mensagem</label>
+      <textarea
+        id="mensagem"
+        class="input textarea"
+        formControlName="mensagem"
+        rows="4"
+        placeholder="Deixa sua reclamação aqui"
+        aria-describedby="mensagemHint">
+      </textarea>
+      <small class="hint" id="mensagemHint">Deixa sua reclamação aqui</small>
+      <div class="error" *ngIf="f.mensagem.touched && f.mensagem.invalid">
+        Informe a mensagem (mín. 3 caracteres).
+      </div>
+
+      <!-- Veículo (somente visualização) -->
+      <label class="label" for="veiculo">Veículo</label>
+        <select
+          id="veiculo"
+          class="input"
+          formControlName="veiculoPlaca">
+          <option [value]="''" disabled>Selecione o veículo...</option>
+          <option *ngFor="let v of veiculos" [value]="v.placa">
+            {{ v.placa }} - {{ v.apelido || v.tipoVeiculo }}
+          </option>
+        </select>
+        <div class="error" *ngIf="f.veiculoPlaca.touched && f.veiculoPlaca.invalid">
+          Selecione o veículo.
+        </div>
+
+      <!-- Matrícula -->
+      <label class="label" for="matricula">Matrícula</label>
+      <input
+        id="matricula"
+        type="text"
+        class="input"
+        formControlName="matricula"
+        placeholder="Ex.: UC01-123"
+        autocomplete="off" />
+      <div class="error" *ngIf="f.matricula.touched && f.matricula.invalid">
+        Informe a matrícula (mín. 3 caracteres).
+      </div>
+
+      <!-- Setor -->
+      <label class="label" for="setor">Setor</label>
+      <select id="setor" class="input" formControlName="setor">
+        <option [value]="''" disabled>Selecione...</option>
+        <option *ngFor="let s of setores" [value]="s">{{ s }}</option>
+      </select>
+      <div class="error" *ngIf="f.setor.touched && f.setor.invalid">
+        Selecione o setor.
+      </div>
+
+      
+
+      <!-- Botão -->
+      <div class="actions">
+        <button class="btn" type="submit" [disabled]="carregando || form.invalid">
+          {{ carregando ? 'Enviando...' : 'Enviar reporte' }}
+        </button>
+      </div>
+
+      <p class="error" *ngIf="erroMsg">{{ erroMsg }}</p>
+    </form>
+  </div>
+</div>
+
+<!-- Modal de sucesso -->
+<div
+  class="reporter-overlay"
+  *ngIf="showModal"
+  (click)="closeModal()"
+  (window:keydown.escape)="closeModal()"
+  tabindex="-1"
+  aria-hidden="false">
+  <div
+    class="reporter-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-title"
+    (click)="$event.stopPropagation()">
+    <h2 id="modal-title">Tudo certo!</h2>
+    <p>Seu reporte foi gerado com sucesso, vamos trabalhar nessa tratativa!</p>
+    <button class="btn ok-btn" type="button" (click)="closeModal()">Fechar</button>
+  </div>
+</div>

@@ -25,7 +25,7 @@ import {
   Fornecedor as FornecedorDTO
 } from '../fornecedor/fornecedor.service';
 
-// helpers
+// ===== Helpers de data =====
 function toIsoStartOfDayUTC(yyyyMMdd: string): string {
   return yyyyMMdd ? `${yyyyMMdd}T00:00:00Z` : '';
 }
@@ -145,15 +145,26 @@ export class QuimicosComponent implements OnInit {
     fornecedorId?: number;
     dataCompra?: string | null;
     dataCompraDateInput?: string;
+    // validade (LocalDate)
+    dataValidade?: string | null;
+    dataValidadeDateInput?: string;
     statusQuimicos?: StatusQuimicos | null;
     estadoLocalArmazenamento?: Estado | null;
     observacao?: string | null;
   }> = {
     statusQuimicos: StatusQuimicos.ATIVO,
     dataCompraDateInput: '',
+    dataValidadeDateInput: '',
     estadoLocalArmazenamento: null,
     observacao: ''
   };
+
+  // ===== Formatação de estoque (concatena quantidade + unidade) =====
+  private nf = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 6 });
+  fmtEstoque(q: QuimicoDTO): string {
+    const qty = Number(q.estoqueInicial ?? 0);
+    return `${this.nf.format(qty)} ${q.unidade}`;
+  }
 
   // computed
   get quimicosFiltrados(): QuimicoDTO[] {
@@ -218,6 +229,7 @@ export class QuimicosComponent implements OnInit {
     this.novo = {
       statusQuimicos: StatusQuimicos.ATIVO,
       dataCompraDateInput: '',
+      dataValidadeDateInput: '',
       estadoLocalArmazenamento: null,
       observacao: ''
     };
@@ -229,6 +241,7 @@ export class QuimicosComponent implements OnInit {
     this.novo = {
       statusQuimicos: StatusQuimicos.ATIVO,
       dataCompraDateInput: '',
+      dataValidadeDateInput: '',
       estadoLocalArmazenamento: null,
       observacao: ''
     };
@@ -251,6 +264,11 @@ export class QuimicosComponent implements OnInit {
       estoqueInicial: Number(this.novo.estoqueInicial ?? 0),
       valorQuimico: this.novo.valorQuimico != null ? Number(this.novo.valorQuimico) : null,
       statusQuimicos: (this.novo.statusQuimicos ?? StatusQuimicos.ATIVO) as StatusQuimicos,
+      // LocalDate (sem timezone)
+      dataValidade: (this.novo.dataValidadeDateInput && this.novo.dataValidadeDateInput.length === 10)
+        ? this.novo.dataValidadeDateInput
+        : null,
+      // OffsetDateTime (com Z)
       dataCompra: (this.novo.dataCompraDateInput && this.novo.dataCompraDateInput.length === 10)
         ? toIsoStartOfDayUTC(this.novo.dataCompraDateInput)
         : null,
@@ -292,6 +310,7 @@ export class QuimicosComponent implements OnInit {
     this.novo = {
       statusQuimicos: StatusQuimicos.ATIVO,
       dataCompraDateInput: '',
+      dataValidadeDateInput: '',
       estadoLocalArmazenamento: null,
       observacao: ''
     };
@@ -315,6 +334,8 @@ export class QuimicosComponent implements OnInit {
           fornecedorId: full.fornecedor?.id,
           dataCompra: full.dataCompra ?? null,
           dataCompraDateInput: isoToDateInput(full.dataCompra ?? null),
+          dataValidade: full.dataValidade ?? null,
+          dataValidadeDateInput: isoToDateInput(full.dataValidade ?? null),
           statusQuimicos: full.statusQuimicos ?? StatusQuimicos.ATIVO,
           estadoLocalArmazenamento: full.estadoLocalArmazenamento ?? null,
           observacao: full.observacao ?? ''
@@ -335,7 +356,7 @@ export class QuimicosComponent implements OnInit {
     this.quimicoService.remover(q.codigo).subscribe({
       next: () => { this.quimicos = this.quimicos.filter(x => x.codigo !== q.codigo); },
       error: err => {
-        this.toastr.error('Não foi possível excluir o químico.', 'Erro', { positionClass: 'toast-bottom-center' });
+        this.toastr.error('Não é possível excluir: verifique se há movimentações.', 'Erro', { positionClass: 'toast-bottom-center' });
         console.error(err);
       }
     });

@@ -1,17 +1,47 @@
-/* src/app/quimico-estoque/quimico-estoque.component.css */
+/* src/app/paginacao/quimicos/quimico-estoque.component.css */
+.card { border-radius: 12px; }
+.bg-opacity-10 { --bs-bg-opacity: .10; }
 
-.bg-danger-subtle {
-  background-color: rgba(220, 53, 69, 0.12) !important;
+.uf-card {
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 14px;
+  background: #f8fafc;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.06);
 }
 
-.bg-warning-subtle {
-  background-color: rgba(255, 193, 7, 0.12) !important;
+.uf-chip {
+  font-weight: 700;
+  letter-spacing: .5px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(2,6,23,.15);
+  background: white;
 }
 
-.bg-secondary-subtle {
-  background-color: rgba(108, 117, 125, 0.08) !important;
+.uf-total {
+  font-size: .9rem;
+  color: #334155;
+  font-weight: 600;
 }
 
-.bg-light-subtle {
-  background-color: rgba(248, 249, 250, 0.7);
+.tipo-row {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: white;
+  border: 1px solid rgba(2,6,23,.06);
+}
+
+.tipo-row + .tipo-row { margin-top: 6px; }
+
+.tipo-nome {
+  font-weight: 600;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}
+
+.tipo-qtd {
+  font-weight: 700;
+  color: #111827;
 }

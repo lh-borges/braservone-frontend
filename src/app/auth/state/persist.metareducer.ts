@@ -8,7 +8,14 @@ const STORAGE_KEY = 'app_auth';
 /** Estrutura persistida no localStorage */
 export interface PersistedAuth {
   token?: string;
-  user?: any; // pode tipar como AuthResponse se quiser
+  user?: any; // opcionalmente: AuthResponse
+}
+
+function safeSet(key: string, value: string) {
+  try { localStorage.setItem(key, value); } catch { /* ignore */ }
+}
+function safeRemove(key: string) {
+  try { localStorage.removeItem(key); } catch { /* ignore */ }
 }
 
 export function persistAuthMetaReducer(
@@ -19,16 +26,24 @@ export function persistAuthMetaReducer(
 
     const auth: AuthState | undefined = nextState?.[AUTH_FEATURE_KEY];
 
-    if (auth?.isAuthenticated && auth.userDetails) {
-      const snapshot: PersistedAuth = {
-        token: (auth.userDetails as any).token, // ajuste conforme seu AuthResponse
-        user: auth.userDetails,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    // Se houver slice de auth
+    if (auth) {
+      if (auth.isAuthenticated && auth.userDetails) {
+        const snapshot: PersistedAuth = {
+          // Se usar cookie HttpOnly, token pode ser undefined — tudo bem
+          token: (auth.userDetails as any)?.token,
+          user: auth.userDetails,
+        };
+        safeSet(STORAGE_KEY, JSON.stringify(snapshot));
+      } else {
+        // Desautenticado (expirou, falhou init, etc.) => limpa
+        safeRemove(STORAGE_KEY);
+      }
     }
 
+    // Redundância explícita no logout
     if (action.type === logoutUser.type) {
-      localStorage.removeItem(STORAGE_KEY);
+      safeRemove(STORAGE_KEY);
     }
 
     return nextState;

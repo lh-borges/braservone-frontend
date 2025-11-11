@@ -1,3 +1,4 @@
+// src/app/paginacao/poco/poco.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
@@ -42,9 +43,12 @@ export class PocoService {
 
   // ===================== LISTAS =====================
 
-  /** ❗️Novo: GET paginado /api/pocos?page=&size=&sort=campo,dir */
+  /** GET paginado /api/pocos?page=&size=&sort=campo,dir */
   getPocosPaged(page = 0, size = 50, sort?: string[]): Observable<PageResponse<PocoDTO>> {
-    let params = new HttpParams().set('page', page).set('size', size);
+    let params = new HttpParams()
+      .set('page', page)
+      .set('size', size);
+
     (sort ?? []).forEach(s => params = params.append('sort', s)); // ex.: ['codigoAnp,asc']
 
     return this.http.get<PageResponse<PocoDTO>>(this.url('/api/pocos'), { params }).pipe(
@@ -70,7 +74,7 @@ export class PocoService {
     );
   }
 
-  /** GET /api/pocos (lite) – pronto para selects/autocomplete (usa legacy) */
+  /** GET /api/pocos lite – para selects/autocomplete */
   getAllPocosLite(): Observable<PocoLite[]> {
     return this.getAllPocos().pipe(
       map(lista =>
@@ -126,6 +130,7 @@ export class PocoService {
     );
   }
 
+  /** Mantém o payload flexível; tipoPoco vem junto do model */
   private toBackendPayload(src: Partial<Poco>): any {
     return { ...(src || {}) };
   }
