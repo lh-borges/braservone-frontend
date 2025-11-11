@@ -42,10 +42,10 @@
 
               <div class="filter-bar bg-white rounded shadow-sm border p-3 mb-3">
                 <div class="row g-2 align-items-end">
-                  <div class="col-12 col-md-5">
+                  <div class="col-12 col-md-4">
                     <label class="form-label mb-1">Pesquisar Químico</label>
                     <input type="text" class="form-control"
-                           placeholder="Digite código, fornecedor, lote ou tipo..."
+                           placeholder="Digite código, fornecedor, lote, tipo ou estado..."
                            [(ngModel)]="searchTerm" />
                   </div>
 
@@ -58,11 +58,21 @@
                     </select>
                   </div>
 
+                  <!-- NOVO: filtro por Estado (UF) -->
+                  <div class="col-6 col-md-3">
+                    <label class="form-label mb-1">Estado (armazenado)</label>
+                    <select class="form-select" [(ngModel)]="estadoFiltro">
+                      <option value="TODOS">Todos</option>
+                      <option *ngFor="let e of estados" [value]="e">{{ e }}</option>
+                    </select>
+                  </div>
+
                   <div class="col-6 col-md-2">
                     <label class="form-label mb-1 d-none d-md-block">&nbsp;</label>
                     <button class="btn btn-primary w-100" (click)="onPesquisar()">Pesquisar</button>
                   </div>
 
+                  <!-- Mantido: botão de adicionar (pode quebrar para a linha de baixo em md) -->
                   <div class="col-12 col-md-2">
                     <label class="form-label mb-1 d-none d-md-block">&nbsp;</label>
                     <button class="btn btn-success w-100 fw-semibold" (click)="novoQuimico()">+ Adicionar Químico</button>
@@ -189,7 +199,7 @@
                           <th>Tipo</th>
                           <th>Fornecedor</th>
                           <th>Lote</th>
-                          <th>Estoque inicial</th> <!-- concatena quantidade + unidade -->
+                          <th>Estoque inicial</th>
                           <th>Valor</th>
                           <th>Data compra</th>
                           <th>Validade</th>

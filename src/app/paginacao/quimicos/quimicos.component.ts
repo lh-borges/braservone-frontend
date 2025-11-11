@@ -111,6 +111,7 @@ export class QuimicosComponent implements OnInit {
   // filtros
   searchTerm = '';
   statusFiltro: 'TODOS' | StatusQuimicos = 'TODOS';
+  estadoFiltro: 'TODOS' | Estado = 'TODOS'; // <<< NOVO
 
   // options
   statusOptions: StatusQuimicos[] = [StatusQuimicos.ATIVO, StatusQuimicos.FINALIZADO];
@@ -170,18 +171,32 @@ export class QuimicosComponent implements OnInit {
   get quimicosFiltrados(): QuimicoDTO[] {
     const termo = (this.searchTerm ?? '').trim().toLowerCase();
     let arr = this.quimicos ?? [];
+
     if (termo) {
       arr = arr.filter(q => {
         const codigoStr = q.codigo != null ? String(q.codigo) : '';
         const tipoStr   = q.tipoQuimico != null ? String(q.tipoQuimico).toLowerCase() : '';
         const fornStr   = q.fornecedor?.nome?.toLowerCase() ?? '';
         const loteStr   = (q.lote ?? '').toLowerCase();
-        return codigoStr.includes(termo) || tipoStr.includes(termo) || fornStr.includes(termo) || loteStr.includes(termo);
+        const estadoStr = String(q.estadoLocalArmazenamento ?? '').toLowerCase(); // <<< NOVO
+        return (
+          codigoStr.includes(termo) ||
+          tipoStr.includes(termo)   ||
+          fornStr.includes(termo)   ||
+          loteStr.includes(termo)   ||
+          estadoStr.includes(termo) // <<< NOVO
+        );
       });
     }
+
     if (this.statusFiltro !== 'TODOS') {
       arr = arr.filter(q => q.statusQuimicos === this.statusFiltro);
     }
+
+    if (this.estadoFiltro !== 'TODOS') { // <<< NOVO
+      arr = arr.filter(q => q.estadoLocalArmazenamento === this.estadoFiltro);
+    }
+
     return arr;
   }
   onPesquisar() { /* filtro já é reativo via getter */ }
