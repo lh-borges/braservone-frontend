@@ -6,84 +6,85 @@
   </aside>
 
   <main class="content">
-    <div class="container-fluid">
-      <div class="row">
-
-        <!-- Topo -->
+    <div class="container-fluid p-4">
+      <div class="row g-4">
+        
         <div class="col-12">
-          <div class="rounded p-4 m-3 bg-primary d-flex flex-wrap gap-2 justify-content-between align-items-center shadow-sm">
-            <div class="d-flex align-items-center gap-3">
-              <button class="btn btn-light btn-sm" (click)="goBack()">
-                <i class="bi bi-arrow-left"></i> Voltar
-              </button>
+          <div class="header-bar-primary bg-primary m-3 p-4">
+            <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center">
+              
+              <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-outline-light btn-soft-clean" (click)="goBack()">
+                  <i class="bi bi-arrow-left"></i> Voltar
+                </button>
 
-              <!-- Título -->
-              <ng-container *ngIf="reporte as rep; else tituloBasico">
-                <h2 class="text-white fw-bold m-0">
-                  Reporte de Campo <small class="fw-normal ms-2">#{{ rep.id }}</small>
-                </h2>
-              </ng-container>
-              <ng-template #tituloBasico>
-                <h2 class="text-white fw-bold m-0">Reporte de Campo</h2>
-              </ng-template>
-            </div>
+                <ng-container *ngIf="reporte as rep; else tituloBasico">
+                  <h2 class="text-white fw-bold m-0" style="font-size: 1.5rem;">
+                    Detalhe do Reporte <small class="text-white fw-normal ms-2 opacity-75">#{{ rep.id }}</small>
+                  </h2>
+                </ng-container>
+                <ng-template #tituloBasico>
+                  <h2 class="text-white fw-bold m-0" style="font-size: 1.5rem;">Reporte de Campo</h2>
+                </ng-template>
+              </div>
 
-            <div class="text-white-50 small">
-              <ng-container *ngIf="reporte as rep">
-                Criado em: {{ rep.dataHoraReporte | date:'dd/MM/yyyy HH:mm' }}
-              </ng-container>
+              <div class="text-white small opacity-75">
+                <ng-container *ngIf="reporte as rep">
+                  Criado em: {{ rep.dataHoraReporte | date:'dd/MM/yyyy HH:mm' }}
+                </ng-container>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Estados globais -->
         <div class="col-12" *ngIf="errorMsg()">
           <div class="m-3">
-            <div class="alert alert-danger mb-0">{{ errorMsg() }}</div>
+            <div class="alert alert-soft-danger mb-0 small">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMsg() }}
+            </div>
           </div>
         </div>
         <div class="col-12" *ngIf="loading()">
           <div class="m-3">
-            <div class="alert alert-light d-flex align-items-center gap-2 mb-0">
-              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-              <span>Carregando…</span>
+            <div class="alert alert-soft-info d-flex align-items-center gap-2 mb-0 small">
+              <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
+              <span>Carregando dados do reporte...</span>
             </div>
           </div>
         </div>
 
-        <!-- ===== Sessão 1: Dados do Reporte ===== -->
-        <div class="col-12" *ngIf="!loading()">
+        <div class="col-12 col-xl-7" *ngIf="!loading()">
           <ng-container *ngIf="reporte as rep">
-            <div class="card shadow-sm m-3">
-              <div class="card-header d-flex align-items-center justify-content-between">
-                <span class="fw-semibold">Dados do reporte</span>
-                <span class="badge"
+            <div class="card-soft accent-info m-3 p-0">
+              <div class="card-header-clean">
+                <span class="text-dark-title fw-semibold">Dados do Reporte</span>
+                <span class="status-tag"
                       [ngClass]="{
-                        'text-bg-success': rep.status==='FINALIZADO',
-                        'text-bg-danger' : rep.status==='CANCELADO',
-                        'text-bg-secondary': rep.status!=='FINALIZADO' && rep.status!=='CANCELADO'
+                        'status-success': rep.status==='FINALIZADO',
+                        'status-danger' : rep.status==='CANCELADO',
+                        'status-secondary': rep.status!=='FINALIZADO' && rep.status!=='CANCELADO'
                       }">{{ rep.status }}</span>
               </div>
 
-              <div class="card-body">
+              <div class="card-body p-4">
                 <form (ngSubmit)="$event.preventDefault()">
                   <div class="row g-3">
-                    <div class="col-md-3">
-                      <label class="form-label">Matrícula *</label>
+                    <div class="col-md-4">
+                      <label class="form-label text-muted-label">Matrícula *</label>
                       <input type="text" class="form-control"
                              [(ngModel)]="rep.matricula" name="matricula" required />
                     </div>
 
-                    <div class="col-md-4">
-                      <label class="form-label">Setor *</label>
+                    <div class="col-md-5">
+                      <label class="form-label text-muted-label">Setor *</label>
                       <select class="form-select"
                               [(ngModel)]="rep.setor" name="setor" required>
                         <option *ngFor="let s of setorOptions" [value]="s">{{ s }}</option>
                       </select>
                     </div>
-
-                    <div class="col-md-5">
-                      <label class="form-label">Status *</label>
+                    
+                    <div class="col-md-3">
+                      <label class="form-label text-muted-label">Status *</label>
                       <select class="form-select"
                               [(ngModel)]="rep.status" name="status" required>
                         <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
@@ -91,15 +92,15 @@
                     </div>
 
                     <div class="col-12">
-                      <label class="form-label">Mensagem *</label>
+                      <label class="form-label text-muted-label">Mensagem *</label>
                       <textarea class="form-control" rows="3"
-                                [(ngModel)]="rep.mensagem" name="mensagem"
-                                required placeholder="Descreva o reporte…"></textarea>
+                                 [(ngModel)]="rep.mensagem" name="mensagem"
+                                 required placeholder="Descreva o reporte…"></textarea>
                     </div>
                   </div>
 
-                  <div class="mt-3 d-flex gap-2 justify-content-end">
-                    <button class="btn btn-primary" (click)="saveReporte()" [disabled]="saving()">
+                  <div class="mt-4 d-flex gap-2 justify-content-end border-top pt-3 border-light">
+                    <button class="btn btn-soft-primary" (click)="saveReporte()" [disabled]="saving()">
                       <span *ngIf="saving()" class="spinner-border spinner-border-sm me-1"></span>
                       {{ saving() ? 'Salvando…' : 'Salvar alterações' }}
                     </button>
@@ -110,52 +111,48 @@
           </ng-container>
         </div>
 
-        <!-- ===== Sessão 2: Observações ===== -->
-        <div class="col-12" *ngIf="!loading()">
+        <div class="col-12 col-xl-5" *ngIf="!loading()">
           <ng-container *ngIf="reporte as rep">
-            <div class="card shadow-sm m-3">
-              <div class="card-header d-flex align-items-center justify-content-between">
-                <span class="fw-semibold">Observações</span>
-                <span class="badge text-bg-secondary">{{ observacoes.length || 0 }}</span>
+            <div class="card-soft m-3 p-0 h-100 accent-warning">
+              <div class="card-header-clean">
+                <span class="text-dark-title fw-semibold">Observações</span>
+                <span class="badge-pill">{{ observacoes.length || 0 }}</span>
               </div>
 
-              <div class="card-body">
-                <!-- Adicionar observação -->
-                <div class="border rounded-3 p-3 mb-3 bg-light">
-                  <div class="row g-2">
-                    <div class="col-12 col-lg-10">
-                      <label class="form-label">Nova observação</label>
+              <div class="card-body p-4">
+                <div class="rounded-3 p-3 mb-4 add-obs-box">
+                  <div class="row g-3">
+                    <div class="col-12">
+                      <label class="form-label text-muted-label">Nova observação</label>
                       <textarea class="form-control" rows="2"
-                                [(ngModel)]="novaObs" name="novaObs"
-                                placeholder="Escreva a observação…"></textarea>
+                                 [(ngModel)]="novaObs" name="novaObs"
+                                 placeholder="Escreva a observação…"></textarea>
                     </div>
-                    <div class="col-12 col-lg-2 d-flex align-items-end">
-                      <button class="btn btn-outline-primary w-100"
+                    <div class="col-12 d-flex justify-content-end">
+                      <button class="btn btn-soft-primary btn-sm"
                               (click)="addObs()"
                               [disabled]="addingObs() || !novaObs || !novaObs.trim()">
                         <span *ngIf="addingObs()" class="spinner-border spinner-border-sm me-1"></span>
-                        Adicionar
+                        <i *ngIf="!addingObs()" class="bi bi-plus-lg me-1"></i> Adicionar
                       </button>
                     </div>
                   </div>
                 </div>
 
-                <!-- Lista -->
                 <ng-container *ngIf="observacoes.length > 0; else vazioObs">
-                  <div class="row g-3">
-                    <div class="col-12 col-md-12 col-lg-12" *ngFor="let o of observacoes">
-                      <div class="card h-100 shadow-lg border-0">
-                        <div class="card-body d-flex flex-column">
-                          <div class="d-flex justify-content-between align-items-start mb-2">
-                            <span class="badge text-bg-secondary">#{{ o.id }}</span>
-                            <small class="text-muted">{{ o.dataMensagem | date:'dd/MM/yyyy HH:mm' }}</small>
-                          </div>
-                          <p class="mb-3">{{ o.mensagem }}</p>
-                          <div class="mt-auto d-flex justify-content-end">
-                            <button class="btn btn-sm btn-outline-danger" (click)="removeObs(o)">
-                              <i class="bi bi-trash"></i> Remover
-                            </button>
-                          </div>
+                  <div class="timeline-container">
+                    <div class="timeline-block" *ngFor="let o of observacoes">
+                      <div class="marker marker-secondary"></div>
+                      <div class="content-box">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                          <span class="text-muted-light small fw-medium">ID #{{ o.id }}</span>
+                          <small class="text-muted-light">{{ o.dataMensagem | date:'dd/MM/yyyy HH:mm' }}</small>
+                        </div>
+                        <p class="mb-3 text-dark-title small">{{ o.mensagem }}</p>
+                        <div class="mt-auto d-flex justify-content-end">
+                          <button class="btn btn-sm btn-soft-danger" (click)="removeObs(o)">
+                            <i class="bi bi-trash-fill me-1"></i> Remover
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -163,7 +160,7 @@
                 </ng-container>
 
                 <ng-template #vazioObs>
-                  <div class="border rounded-3 bg-white p-4 text-center text-muted">
+                  <div class="p-4 text-center text-muted-light">
                     Sem observações ainda.
                   </div>
                 </ng-template>
@@ -172,7 +169,5 @@
           </ng-container>
         </div>
 
-      </div> <!-- /row -->
-    </div> <!-- /container-fluid -->
-  </main>
+      </div> </div> </main>
 </div>

@@ -1,0 +1,176 @@
+/* Custom Design System: Soft Minimal UI */
+
+/* Variáveis e Cores Padrão do Sistema */
+:root {
+  --color-primary: #3b82f6;      /* Azul Info */
+  --color-success: #10b981;      /* Verde Sucesso */
+  --color-warning: #ffba18;      /* Amarelo Atenção */
+  --color-danger: #ef4444;       /* Vermelho Crítico */
+  
+  --color-dark-title: #1a1f36;   /* Cinza Escuro Títulos */
+  --color-muted-label: #6c757d;  /* Cinza Médio Rótulos */
+  --color-muted-light: #9ca3af;  /* Cinza Claro Subtítulos */
+  
+  --color-off-white: #f4f6f8;    /* Fundo Principal */
+  --color-border-light: #f1f3f5; /* Separador Fino */
+}
+
+/* Layout e Base */
+.shell { display: grid; grid-template-columns: 240px 1fr; height: 100vh; overflow: hidden; }
+.header { grid-column: 1 / -1; }
+.sidebar { grid-row: 2; border-right: 1px solid var(--color-border-light); }
+.content { 
+    grid-row: 2; 
+    background-color: var(--color-off-white); 
+    overflow-y: auto;
+}
+
+/* === NOVO: BARRA DE CABEÇALHO PRIMÁRIA === */
+.header-bar-primary {
+    background-color: var(--color-primary); /* Fundo Azul */
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.header-bar-primary .btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+}
+.header-bar-primary .btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+/* ========================================= */
+
+
+/* 1. Card & Container Soft UI */
+.card-soft {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+.poco-header-bar {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.card-header-clean {
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+/* 2. Tipografia & Etiquetas */
+.text-dark-title { color: var(--color-dark-title) !important; }
+
+.text-muted-label { 
+  color: var(--color-muted-label) !important; 
+  font-weight: 600; 
+  font-size: 0.75rem; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px;
+}
+.text-muted-light { color: var(--color-muted-light) !important; }
+
+/* 3. Accents (Borda Lateral) */
+/* Info/Ação principal (Azul) */
+.accent-info { border-left: 5px solid var(--color-primary) !important; }
+/* Secundário/Atenção (Amarelo) */
+.accent-warning { border-left: 5px solid var(--color-warning) !important; }
+
+/* 4. Botões (Soft) */
+.btn-soft-primary { background-color: var(--color-primary); border-color: var(--color-primary); color: #fff; font-weight: 600; border-radius: 8px; }
+.btn-soft-primary:hover { background-color: #2563eb; border-color: #2563eb; }
+
+/* BOTÃO DE DELETAR REFORÇADO (Pastel Red) */
+.btn-soft-danger { background-color: #fecaca; border-color: #fecaca; color: var(--color-danger); font-weight: 600; border-radius: 8px; }
+.btn-soft-danger:hover { background-color: #fca5a5; border-color: #fca5a5; }
+
+.btn-outline-secondary.btn-soft-clean { border-radius: 8px; }
+
+/* 5. Inputs */
+.form-control, .form-select { border-radius: 8px; border-color: #e2e8f0; color: var(--color-dark-title); }
+
+/* 6. Tags de Status (Pastel) */
+.status-tag {
+    font-size: 0.75rem; 
+    padding: 4px 10px; 
+    border-radius: 20px; /* Pill style */
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+}
+.badge-pill { font-size: 0.75rem; background: #e9ecef; color: #6c757d; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+
+.status-success { background-color: #d1fae5; color: #065f46; } /* FINALIZADO */
+.status-danger { background-color: #fff0f0; color: var(--color-danger); } /* CANCELADO */
+.status-secondary { background-color: #e9ecef; color: var(--color-muted-label); } /* PENDENTE / EM ANDAMENTO */
+
+
+/* 7. Alertas (Estilo Pastel) */
+.alert-soft-danger { 
+    background-color: #fff0f0; 
+    border-left: 5px solid var(--color-danger); 
+    color: var(--color-danger);
+    border-radius: 8px;
+    border: 1px solid #fee2e2;
+}
+.alert-soft-info {
+    background-color: #e0f2fe; 
+    border-left: 5px solid var(--color-primary); 
+    color: var(--color-primary);
+    border-radius: 8px;
+    border: 1px solid #bfdbfe;
+}
+
+/* 8. Observações (Comunicação) */
+.add-obs-box {
+    background: #f8f9fa; /* Fundo claro para o input */
+    border: 1px solid #e9ecef;
+}
+
+/* Timeline/List Style for Observations */
+.timeline-container {
+    padding-left: 10px;
+    border-left: 2px solid #e9ecef; /* Linha divisória sutil */
+    padding-top: 5px;
+}
+.timeline-block {
+    position: relative;
+    padding-left: 25px;
+    margin-bottom: 24px;
+}
+
+.marker {
+    position: absolute; left: -6px; top: 8px;
+    width: 12px; height: 12px;
+    background: #ffffff; /* Fundo branco */
+    border: 3px solid #e9ecef; 
+    border-radius: 50%;
+    z-index: 2;
+}
+.marker-secondary { border-color: var(--color-muted-light); }
+
+.content-box {
+    background: #ffffff; /* Observação flutuante */
+    padding: 15px; 
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.btn-delete-icon {
+    background: none;
+    border: none;
+    color: var(--color-danger);
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: background 0.1s;
+}
+.btn-delete-icon:hover { background-color: #fee2e2; }
+
+/* Utilitário para borda fina */
+.border-light { border-color: var(--color-border-light) !important; }

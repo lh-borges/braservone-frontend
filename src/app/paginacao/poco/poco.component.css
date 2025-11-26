@@ -1,60 +1,131 @@
-/* Modal do Poço ocupando ~90% da largura da página */
-.createPoco .modal-dialog {
-  --bs-modal-width: 90vw;     /* Bootstrap 5.2+ */
-  max-width: 90vw;            /* fallback */
-  width: 90vw;                /* garante largura */
+/* Custom Design System: Soft Minimal UI */
+
+/* Variáveis e Cores Padrão do Sistema */
+:root {
+  --color-primary: #3b82f6;      /* Azul Info */
+  --color-success: #10b981;      /* Verde Sucesso */
+  --color-warning: #ffba18;      /* Amarelo Atenção */
+  --color-danger: #ef4444;       /* Vermelho Crítico */
+  
+  --color-dark-title: #1a1f36;   /* Cinza Escuro Títulos */
+  --color-muted-label: #6c757d;  /* Cinza Médio Rótulos */
+  --color-muted-light: #9ca3af;  /* Cinza Claro Subtítulos */
+  
+  --color-off-white: #f4f6f8;    /* Fundo Principal */
+  --color-border-light: #f1f3f5; /* Separador Fino */
 }
 
-/* só um carinho visual */
-.createPoco .modal-dialog {
-  max-width: 1000px;
+/* Layout e Base */
+.shell { display: grid; grid-template-columns: 240px 1fr; height: 100vh; overflow: hidden; }
+.header { grid-column: 1 / -1; }
+.sidebar { grid-row: 2; border-right: 1px solid var(--color-border-light); }
+.content { 
+    grid-row: 2; 
+    background-color: var(--color-off-white); /* Fundo Off-White */
+    overflow-y: auto;
 }
 
-.header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+/* 1. Card & Container Soft UI */
+.card-soft {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); /* Sombra suave */
+  border: 1px solid rgba(0,0,0,0.05);
 }
 
-.sidebar {
-  min-width: 240px;
+.poco-header-bar {
+    background-color: #007bff;
+    color:#fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 }
 
-.content {
-  min-height: 100vh;
-  background: #f7f9fb;
+/* 2. Tipografia & Etiquetas */
+.text-dark-title { color: var(--color-dark-title) !important; }
+
+.text-muted-label { 
+  color: var(--color-muted-label) !important; 
+  font-weight: 600; 
+  font-size: 0.75rem; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px;
+}
+.text-muted-light { color: var(--color-muted-light) !important; }
+
+/* 3. Accents (Borda Lateral) */
+/* Info/Ação principal (Azul) */
+.accent-info { border-left: 5px solid var(--color-primary) !important; }
+/* Card de dado levemente acentuado */
+.accent-info-light { border-left: 3px solid #e0f2fe; }
+
+/* 4. Botões (Soft) */
+.btn-soft-primary { background-color: var(--color-primary); border-color: var(--color-primary); color: #fff; font-weight: 600; border-radius: 8px; }
+.btn-soft-primary:hover { background-color: #2563eb; border-color: #2563eb; }
+
+.btn-soft-success { background-color: var(--color-success); border-color: var(--color-success); color: #fff; font-weight: 600; border-radius: 8px; }
+.btn-soft-success:hover { background-color: #059669; border-color: #059669; }
+
+.btn-soft-warning { background-color: #fcd34d; border-color: #fcd34d; color: var(--color-dark-title); font-weight: 600; border-radius: 8px; }
+.btn-soft-warning:hover { background-color: #fbbf24; border-color: #fbbf24; }
+
+.btn-soft-danger { background-color: #fecaca; border-color: #fecaca; color: var(--color-danger); font-weight: 600; border-radius: 8px; }
+.btn-soft-danger:hover { background-color: #fca5a5; border-color: #fca5a5; }
+
+.btn-soft-clean { border-radius: 8px; }
+
+/* 5. Inputs */
+.form-control, .form-select { border-radius: 8px; border-color: #e2e8f0; color: var(--color-dark-title); }
+
+/* 6. Alertas (Estilo Pastel) */
+.floating-alert { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); } /* Sombra um pouco mais forte para destaque fixo */
+
+.alert-soft-success { 
+    background-color: #d1fae5; 
+    border-left: 5px solid var(--color-success); 
+    color: #065f46; 
+    border-radius: 8px; 
+}
+.alert-soft-danger { 
+    background-color: #fff0f0; 
+    border-left: 5px solid var(--color-danger); 
+    color: var(--color-danger);
+    border-radius: 8px;
+}
+.alert-soft-info {
+    background-color: #e0f2fe; 
+    border-left: 5px solid var(--color-primary); 
+    color: var(--color-primary);
+    border-radius: 8px;
 }
 
-.floating-alert {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  max-width: 300px;
-  z-index: 1050; /* fica acima de outros elementos */
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  animation: slideUp 0.3s ease-out;
+/* 7. Tags de Status (Pastel) */
+.status-tag {
+    font-size: 0.75rem; 
+    padding: 2px 8px; 
+    border-radius: 4px; 
+    font-weight: 600;
+}
+.status-success { background-color: #d1fae5; color: #065f46; }
+.status-secondary { background-color: #e9ecef; color: var(--color-muted-label); }
+
+
+/* 8. Modais (Clean Look) */
+.modal-content.card-soft {
+    border-radius: 16px; /* Bordas mais suaves */
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
 }
 
-/* animação opcional */
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.modal-header .btn-close { 
+    background: none; 
+    font-size: 1.2rem;
+    padding: 0;
+    margin: -1.5rem -1rem -0.5rem 0; /* Ajusta o posicionamento do X */
 }
 
-/* ===== Alinhamento do filtro com o cabeçalho ===== */
-/* Usa as mesmas margens laterais (m-3) e padding (p-4) do cabeçalho */
+/* ===== Filtros e Layout Específicos ===== */
+
 .filter-sticky {
-  top: 12px;      /* mantém sticky confortável abaixo do header */
-  z-index: 5;
+    top: 20px; /* Mais espaçamento */
+    z-index: 5;
 }
-
-/* Se algum container externo aplicar padding, você ainda fica alinhado */
-@media (min-width: 576px) {
-  .content .m-3 { margin-left: 1rem !important; margin-right: 1rem !important; }
-}
+.content .m-3 { margin: 1.5rem !important; } /* Aumenta margem padrão */
