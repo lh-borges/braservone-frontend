@@ -54,18 +54,18 @@ export class QuimicosComponent implements OnInit {
   private toastr = inject(ToastrService);
 
   // abas + lazy-load
-  activeTab: 'cadastro' | 'mov' | 'graficos' | 'estoque' = 'cadastro';
+  // REMOVIDO: 'graficos'
+  activeTab: 'cadastro' | 'mov' | 'estoque' = 'cadastro';
 
   movCmpType: Type<any> | null = null;
   loadingMovCmp = false;
 
-  grafCmpType: Type<any> | null = null;
-  loadingGrafCmp = false;
-
   estoqueCmpType: Type<any> | null = null;
   loadingEstoqueCmp = false;
 
-  async setTab(tab: 'cadastro' | 'mov' | 'graficos' | 'estoque') {
+  // REMOVIDO: grafCmpType e loadingGrafCmp
+
+  async setTab(tab: 'cadastro' | 'mov' | 'estoque') {
     this.activeTab = tab;
 
     if (tab === 'mov' && !this.movCmpType) {
@@ -80,7 +80,6 @@ export class QuimicosComponent implements OnInit {
         this.loadingMovCmp = false;
       }
     }
-
 
     if (tab === 'estoque' && !this.estoqueCmpType) {
       this.loadingEstoqueCmp = true;

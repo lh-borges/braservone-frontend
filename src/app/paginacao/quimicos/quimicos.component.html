@@ -37,7 +37,6 @@
         <div class="card-body">
           <ng-container [ngSwitch]="activeTab">
 
-            <!-- ============= CADASTRO ============= -->
             <div *ngSwitchCase="'cadastro'">
 
               <div class="filter-bar bg-white rounded shadow-sm border p-3 mb-3">
@@ -58,7 +57,6 @@
                     </select>
                   </div>
 
-                  <!-- filtro por Estado (UF) -->
                   <div class="col-6 col-md-3">
                     <label class="form-label mb-1">Estado (armazenado)</label>
                     <select class="form-select" [(ngModel)]="estadoFiltro">
@@ -72,7 +70,6 @@
                     <button class="btn btn-primary w-100" (click)="onPesquisar()">Pesquisar</button>
                   </div>
 
-                  <!-- botão de adicionar -->
                   <div class="col-12 col-md-2">
                     <label class="form-label mb-1 d-none d-md-block">&nbsp;</label>
                     <button class="btn btn-success w-100 fw-semibold" (click)="novoQuimico()">+ Adicionar Químico</button>
@@ -80,7 +77,6 @@
                 </div>
               </div>
 
-              <!-- Form -->
               <div class="card mb-4" [hidden]="!exibirFormulario">
                 <div class="card-body">
 
@@ -217,7 +213,6 @@
                           <td>{{ q.fornecedor?.nome || '-' }}</td>
                           <td>{{ q.lote || '-' }}</td>
 
-                          <!-- Estoques em vermelho -->
                           <td class="text-nowrap text-center">{{ fmtEstoque(q) }}</td>
                           <td class="text-nowrap text-center">{{ fmtEstoqueUtilizado(q) }}</td>
                           <td class="text-nowrap text-danger text-center">{{ fmtEstoqueAtual(q) }}</td>
@@ -248,7 +243,6 @@
 
             </div>
 
-            <!-- ============= MOVIMENTAÇÃO (LAZY) ============= -->
             <div *ngSwitchCase="'mov'">
               <div *ngIf="loadingMovCmp" class="text-muted">Carregando movimentação...</div>
               <ng-container *ngIf="movCmpType">
@@ -256,7 +250,6 @@
               </ng-container>
             </div>
 
-            <!-- ============= ESTOQUE ATUAL (LAZY) ============= -->
             <div *ngSwitchCase="'estoque'">
               <div *ngIf="loadingEstoqueCmp" class="text-muted">Carregando estoque...</div>
               <ng-container *ngIf="estoqueCmpType">
