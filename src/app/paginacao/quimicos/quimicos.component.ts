@@ -81,18 +81,6 @@ export class QuimicosComponent implements OnInit {
       }
     }
 
-    if (tab === 'graficos' && !this.grafCmpType) {
-      this.loadingGrafCmp = true;
-      try {
-        const mod = await import('../quimico-grafico/quimico-grafico.component');
-        this.grafCmpType = mod.QuimicoGraficoComponent as Type<any>;
-      } catch (e) {
-        console.error('[Químicos] Falha ao carregar QuimicoGraficoComponent', e);
-        this.toastr.error('Não foi possível carregar Gráficos.', 'Erro', { positionClass: 'toast-bottom-center' });
-      } finally {
-        this.loadingGrafCmp = false;
-      }
-    }
 
     if (tab === 'estoque' && !this.estoqueCmpType) {
       this.loadingEstoqueCmp = true;
