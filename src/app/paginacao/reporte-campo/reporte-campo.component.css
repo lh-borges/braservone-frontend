@@ -1,0 +1,77 @@
+/* --- 1. Global & Tipografia Soft --- */
+:host {
+  display: block;
+  background-color: #f4f6f8; /* Fundo Off-White obrigatório */
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, sans-serif; /* Sugestão de fonte moderna */
+  color: #6c757d; /* Texto base cinza médio */
+}
+
+h2, h5, h6, .fw-bold {
+  color: #1a1f36; /* Títulos em Cinza Escuro (Navy) */
+}
+
+/* --- 2. Card Physics (Soft UI) --- */
+.card-soft {
+  background: #ffffff;
+  border: none;
+  border-radius: 16px; /* Arredondamento moderno */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); /* Sombra difusa regra #2 */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-soft:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+/* --- 3. Color Accents (Identidade Visual) --- */
+/* Faixa lateral colorida para indicar status sem pintar o card inteiro */
+.accent-border {
+  border-left: 4px solid transparent;
+  overflow: hidden; /* Para respeitar o border-radius */
+}
+
+.accent-success { border-left-color: #54d44d; }
+.accent-warning { border-left-color: #ffba18; }
+.accent-danger  { border-left-color: #ff4c4f; }
+.accent-info    { border-left-color: #3ec9d6; }
+.accent-default { border-left-color: #e9ecef; }
+
+/* --- 4. Badges Pastel (Regra #5) --- */
+.badge-soft {
+  padding: 0.5em 0.8em;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.3px;
+}
+
+.badge-soft-success { background-color: rgba(84, 212, 77, 0.15); color: #2d7a28; }
+.badge-soft-danger  { background-color: rgba(255, 76, 79, 0.15); color: #c01a1d; }
+.badge-soft-info    { background-color: rgba(62, 201, 214, 0.15); color: #1a7f8a; }
+.badge-soft-secondary { background-color: #e9ecef; color: #495057; }
+
+/* --- 5. Clean Inputs & Selects --- */
+.form-control, .form-select {
+  background-color: #f9fafb;
+  border: 1px solid #eef0f2;
+  border-radius: 8px;
+  color: #1a1f36;
+  box-shadow: none;
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: #fff;
+  border-color: #3ec9d6;
+  box-shadow: 0 0 0 3px rgba(62, 201, 214, 0.1);
+}
+
+/* --- 6. Utility --- */
+.text-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #95aac9;
+  font-weight: 600;
+}

@@ -25,59 +25,61 @@ export class ReporteCampoComponent implements OnInit {
   private service = inject(ReporteCampoServiceService);
   private router  = inject(Router);
 
-  // estado global
+  // --- Estado Global (Signals) ---
   loading = signal<boolean>(false);
   errorMsg = signal<string | null>(null);
   reportes = signal<Reporte[]>([]);
 
-  // controles por-card
+  // --- Controles de Estado por Card (Sets) ---
   updating = new Set<number>();
   addingObs = new Set<number>();
-  deleting = new Set<number>(); // 👈 novo controle para exclusão
+  deleting = new Set<number>();
 
-  // opções
+  // --- Opções para Selects e Loops ---
   statusOptions: StatusReporte[] = [
-    'NOVO','EM_ANDAMENTO','NO_FINANCEIRO','NO_COMPRAS','ESPERANDO_ENVIO','NA_MANUTENCAO','FINALIZADO','CANCELADO'
+    'NOVO', 'EM_ANDAMENTO', 'NO_FINANCEIRO', 'NO_COMPRAS', 
+    'ESPERANDO_ENVIO', 'NA_MANUTENCAO', 'FINALIZADO', 'CANCELADO'
   ];
+  
   openStatusOptions: StatusReporte[] = [
-    'NOVO','EM_ANDAMENTO','NO_FINANCEIRO','NO_COMPRAS','ESPERANDO_ENVIO','NA_MANUTENCAO'
+    'NOVO', 'EM_ANDAMENTO', 'NO_FINANCEIRO', 'NO_COMPRAS', 
+    'ESPERANDO_ENVIO', 'NA_MANUTENCAO'
   ];
+
   setorOptions: Setor[] = [
-    'MECANICA',
-    'INTEGRIDADE',
-    'MANUFATURA',
-    'ELETRICA',
-    'TRANSPORTE',
-    'OPERACAO',
-    'SUPRIMENTO',
-    'OUTROS'
+    'MECANICA', 'INTEGRIDADE', 'MANUFATURA', 'ELETRICA', 
+    'TRANSPORTE', 'OPERACAO', 'SUPRIMENTO', 'OUTROS'
   ];
 
-  // filtros da sessão "Em andamento" — agora como signals
-  filtroSetor   = signal<Setor | 'TODOS'>('TODOS');
-  filtroStatus  = signal<StatusReporte | 'TODOS'>('TODOS');
+  // --- Filtros (Signals) ---
+  filtroSetor  = signal<Setor | 'TODOS'>('TODOS');
+  filtroStatus = signal<StatusReporte | 'TODOS'>('TODOS');
 
-  // helpers
+  // --- Helpers Lógicos Privados ---
   private isEncerrado = (s?: string) => s === 'FINALIZADO' || s === 'CANCELADO';
 
-  // sessões base
+  // --- Computed Signals (Reatividade Automática) ---
+  
+  // Lista base de abertos
   abertos = computed(() =>
     [...this.reportes()]
       .filter(r => !this.isEncerrado(r.status))
       .sort((a, b) => (b.dataHoraReporte?.localeCompare(a.dataHoraReporte)))
   );
 
+  // Lista base de encerrados
   encerrados = computed(() =>
     [...this.reportes()]
       .filter(r => this.isEncerrado(r.status))
       .sort((a, b) => (b.dataHoraReporte?.localeCompare(a.dataHoraReporte)))
   );
 
-  // aplicação de filtros (reage aos signals)
+  // Lista de abertos com filtros aplicados
   abertosFiltrados = computed(() => {
     const base   = this.abertos();
     const setor  = this.filtroSetor();
     const status = this.filtroStatus();
+    
     return base.filter(r => {
       const okSetor  = setor  === 'TODOS' ? true : r.setor === setor;
       const okStatus = status === 'TODOS' ? true : r.status === status;
@@ -88,6 +90,8 @@ export class ReporteCampoComponent implements OnInit {
   ngOnInit(): void {
     this.load();
   }
+
+  // --- Ações de Dados ---
 
   load(): void {
     this.loading.set(true);
@@ -109,7 +113,6 @@ export class ReporteCampoComponent implements OnInit {
     this.filtroStatus.set('TODOS');
   }
 
-  // ações da UI
   onView(r: Reporte) {
     this.router.navigate(['reporte-campo-observacao', r.id]);
   }
@@ -123,29 +126,17 @@ export class ReporteCampoComponent implements OnInit {
 
     this.service.updateStatus(r.id, value).subscribe({
       next: (resp) => {
-        r.status = resp.status;
-        this.reportes.set([...this.reportes()]);
+        // Atualiza apenas o item na lista local para evitar reload total
+        r.status = resp.status; 
+        this.reportes.update(lista => [...lista]); // Trigger na reatividade
         this.updating.delete(r.id);
       },
       error: (e) => {
-        r.status = anterior;
+        r.status = anterior; // Rollback visual
         this.updating.delete(r.id);
         this.errorMsg.set(e?.error?.message || 'Falha ao atualizar status.');
       }
     });
-  }
-
-  onAddObs(r: Reporte) {
-    const mensagem = prompt('Digite a observação:');
-    if (!mensagem || !mensagem.trim()) return;
-
-    this.addingObs.add(r.id);
-    // se tiver ObservacaoService, chame-o aqui.
-    setTimeout(() => {
-      this.addingObs.delete(r.id);
-      r.observacoesCount = (r.observacoesCount ?? 0) + 1;
-      this.reportes.set([...this.reportes()]);
-    }, 300);
   }
 
   onDelete(r: Reporte) {
@@ -156,8 +147,7 @@ export class ReporteCampoComponent implements OnInit {
 
     this.service.remove(r.id).subscribe({
       next: () => {
-        const atual = this.reportes();
-        this.reportes.set(atual.filter(rep => rep.id !== r.id));
+        this.reportes.update(curr => curr.filter(rep => rep.id !== r.id));
         this.deleting.delete(r.id);
       },
       error: (e) => {
@@ -167,7 +157,33 @@ export class ReporteCampoComponent implements OnInit {
     });
   }
 
-  // helpers
+  // --- Helpers Visuais (Soft UI) ---
+
+  /** Retorna a classe CSS para a borda lateral colorida (Accent Border) */
+  getStatusClass(status: string): string {
+    switch (status) {
+      case 'FINALIZADO':      return 'accent-success';
+      case 'CANCELADO':       return 'accent-danger';
+      case 'NOVO':
+      case 'ESPERANDO_ENVIO': return 'accent-warning';
+      default:                return 'accent-info'; // Azul para processos
+    }
+  }
+
+  /** Retorna a classe CSS para o Badge Pastel */
+  getBadgeClass(status: string): string {
+    switch (status) {
+      case 'FINALIZADO': return 'badge-soft-success';
+      case 'CANCELADO':  return 'badge-soft-danger';
+      case 'NOVO':       
+      case 'ESPERANDO_ENVIO': return 'badge-soft-warning'; // Necessário criar css se não existir, ou usar secondary
+      default:           return 'badge-soft-info';
+    }
+  }
+
   countObs(r: Reporte) { return r.observacoesCount ?? 0; }
-  setorLabel(s: string) { return s?.replaceAll('_', ' '); }
+  
+  setorLabel(s: string) { 
+    return s ? s.replaceAll('_', ' ') : ''; 
+  }
 }
