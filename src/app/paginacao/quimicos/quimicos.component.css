@@ -1,58 +1,45 @@
-/* GRID base que você já usa */
-.shell {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  grid-template-rows: auto 1fr;
-  grid-template-areas:
-    "header header"
-    "sidebar content";
-  min-height: 100vh;
-}
-.header { grid-area: header; }
-.sidebar { grid-area: sidebar; }
-.content { grid-area: content; background: #f7f9fb;}
 
-/* HERO (azul do topo) */
-.page-hero {
-  border-radius: .5rem;
-}
+        /* Tabela Soft com separações claras */
+        .table-soft {
+          border-collapse: separate;
+          border-spacing: 0;
+          width: 100%;
+        }
+        
+        .table-soft thead th {
+          background-color: #f8f9fa; /* Fundo cinza bem claro */
+          border-top: 1px solid #eaecf0;
+          border-bottom: 1px solid #eaecf0; /* Borda visível no header */
+          color: #64748b;
+          font-weight: 600;
+          text-transform: uppercase;
+          font-size: 0.75rem;
+          letter-spacing: 0.05em;
+          padding: 12px 16px;
+        }
 
-/* barra de filtros elegante */
-.filter-bar {
-  border: 1px solid #e9ecef;
-}
+        .table-soft tbody td {
+          border-bottom: 1px solid #f1f5f9; /* Linha divisória horizontal visível */
+          padding: 14px 16px;
+          vertical-align: middle;
+          font-size: 0.875rem;
+          color: #334155;
+        }
 
-/* abas coladas no card */
-.card-header .nav-tabs .nav-link {
-  border: none;
-  border-bottom: 3px solid transparent;
-  font-weight: 600;
-  color: #495057;
-}
-.card-header .nav-tabs .nav-link.active {
-  color: #0d6efd;
-  border-bottom-color: #0d6efd;
-}
+        .table-soft tbody tr:last-child td {
+          border-bottom: none; /* Remove borda da última linha */
+        }
 
-/* tabela */
-.table thead th {
-  white-space: nowrap;
-  font-weight: 700;
-}
-.table td, .table th {
-  vertical-align: middle;
-}
+        .table-soft tbody tr:hover {
+          background-color: #f8fafc; /* Hover sutil */
+        }
 
-/* badges de status (Bootstrap 5.3 tem *-subtle; fallback abaixo) */
-.bg-success-subtle { background: #e6f4ea !important; }
-.bg-danger-subtle { background: #fde7e9 !important; }
-
-/* botões pequenos nas ações lembrando o print */
-.btn.btn-sm { padding: .25rem .5rem; }
-
-/* sticky header da tabela em cards altos */
-.table-responsive thead.sticky-top {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
+        /* Container da tabela com borda externa */
+        .table-container {
+          border: 1px solid #eaecf0;
+          border-radius: 12px;
+          overflow: hidden; /* Para arredondar as quinas da tabela */
+          background-color: #fff;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+  
