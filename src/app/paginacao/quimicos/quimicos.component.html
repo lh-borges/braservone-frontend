@@ -58,7 +58,7 @@
                     </select>
                   </div>
 
-                  <!-- NOVO: filtro por Estado (UF) -->
+                  <!-- filtro por Estado (UF) -->
                   <div class="col-6 col-md-3">
                     <label class="form-label mb-1">Estado (armazenado)</label>
                     <select class="form-select" [(ngModel)]="estadoFiltro">
@@ -72,7 +72,7 @@
                     <button class="btn btn-primary w-100" (click)="onPesquisar()">Pesquisar</button>
                   </div>
 
-                  <!-- Mantido: botão de adicionar (pode quebrar para a linha de baixo em md) -->
+                  <!-- botão de adicionar -->
                   <div class="col-12 col-md-2">
                     <label class="form-label mb-1 d-none d-md-block">&nbsp;</label>
                     <button class="btn btn-success w-100 fw-semibold" (click)="novoQuimico()">+ Adicionar Químico</button>
@@ -200,6 +200,8 @@
                           <th>Fornecedor</th>
                           <th>Lote</th>
                           <th>Estoque inicial</th>
+                          <th>Estoque utilizado</th>
+                          <th>Estoque atual</th>
                           <th>Valor</th>
                           <th>Data compra</th>
                           <th>Validade</th>
@@ -214,7 +216,12 @@
                           <td>{{ q.tipoQuimico }}</td>
                           <td>{{ q.fornecedor?.nome || '-' }}</td>
                           <td>{{ q.lote || '-' }}</td>
-                          <td class="text-nowrap">{{ fmtEstoque(q) }}</td>
+
+                          <!-- Estoques em vermelho -->
+                          <td class="text-nowrap text-center">{{ fmtEstoque(q) }}</td>
+                          <td class="text-nowrap text-center">{{ fmtEstoqueUtilizado(q) }}</td>
+                          <td class="text-nowrap text-danger text-center">{{ fmtEstoqueAtual(q) }}</td>
+
                           <td>{{ q.valorQuimico ?? '-' }}</td>
                           <td>{{ q.dataCompra ? (q.dataCompra | date: 'yyyy-MM-dd') : '-' }}</td>
                           <td>{{ q.dataValidade ? (q.dataValidade | date: 'yyyy-MM-dd') : '-' }}</td>
@@ -231,7 +238,7 @@
                           </td>
                         </tr>
                         <tr *ngIf="!carregando && quimicosFiltrados.length === 0">
-                          <td colspan="11" class="text-center p-3 text-muted">Nenhum químico encontrado.</td>
+                          <td colspan="13" class="text-center p-3 text-muted">Nenhum químico encontrado.</td>
                         </tr>
                       </tbody>
                     </table>

@@ -62,15 +62,19 @@ export class QuimicoMovimentoComponent implements OnInit {
   // ============ LOAD DAS OPÇÕES ============
 
   private preloadOptions(): void {
-    // Químicos (para o select)
+    // Químicos (para o select) – APENAS ATIVOS
     this.quimicoSvc.listar().subscribe({
       next: (list: QuimicoDTO[]) => {
         const arr = list ?? [];
-        this.quimicosOptions = arr.map((q) => ({
+
+        // 🔥 mantém só químicos com status ATIVO
+        const ativos = arr.filter((q) => q.statusQuimicos === 'ATIVO');
+
+        this.quimicosOptions = ativos.map((q) => ({
           codigo: q.codigo,
           lote: q.lote ?? null,
-          tipoQuimico: (q as any).tipoQuimico ?? null,
-          estadoLocalArmazenamento: (q as any).estadoLocalArmazenamento ?? null,
+          tipoQuimico: q.tipoQuimico ?? null,
+          estadoLocalArmazenamento: q.estadoLocalArmazenamento ?? null,
         }));
 
         const tipos = new Set<string>();
@@ -109,7 +113,6 @@ export class QuimicoMovimentoComponent implements OnInit {
 
   // Helpers de exibição, compat nested/flatten
   getLote(m: MovRow): string {
-    // se no futuro expor via @Transient, pode usar m.lote como fallback
     return m.quimico?.lote ?? '-';
   }
 

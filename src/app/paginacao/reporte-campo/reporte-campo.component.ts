@@ -33,6 +33,7 @@ export class ReporteCampoComponent implements OnInit {
   // controles por-card
   updating = new Set<number>();
   addingObs = new Set<number>();
+  deleting = new Set<number>(); // 👈 novo controle para exclusão
 
   // opções
   statusOptions: StatusReporte[] = [
@@ -42,15 +43,15 @@ export class ReporteCampoComponent implements OnInit {
     'NOVO','EM_ANDAMENTO','NO_FINANCEIRO','NO_COMPRAS','ESPERANDO_ENVIO','NA_MANUTENCAO'
   ];
   setorOptions: Setor[] = [
-  'MECANICA',
-  'INTEGRIDADE',
-  'MANUFATURA',
-  'ELETRICA',
-  'TRANSPORTE',
-  'OPERACAO',
-  'SUPRIMENTO',
-  'OUTROS'
-];
+    'MECANICA',
+    'INTEGRIDADE',
+    'MANUFATURA',
+    'ELETRICA',
+    'TRANSPORTE',
+    'OPERACAO',
+    'SUPRIMENTO',
+    'OUTROS'
+  ];
 
   // filtros da sessão "Em andamento" — agora como signals
   filtroSetor   = signal<Setor | 'TODOS'>('TODOS');
@@ -84,14 +85,22 @@ export class ReporteCampoComponent implements OnInit {
     });
   });
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void {
+    this.load();
+  }
 
   load(): void {
     this.loading.set(true);
     this.errorMsg.set(null);
     this.service.list().subscribe({
-      next: (data) => { this.reportes.set(data ?? []); this.loading.set(false); },
-      error: (err) => { this.loading.set(false); this.errorMsg.set(err?.error?.message || 'Falha ao carregar reportes.'); }
+      next: (data) => {
+        this.reportes.set(data ?? []);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.errorMsg.set(err?.error?.message || 'Falha ao carregar reportes.');
+      }
     });
   }
 
@@ -137,6 +146,25 @@ export class ReporteCampoComponent implements OnInit {
       r.observacoesCount = (r.observacoesCount ?? 0) + 1;
       this.reportes.set([...this.reportes()]);
     }, 300);
+  }
+
+  onDelete(r: Reporte) {
+    const ok = confirm(`Deseja realmente excluir o reporte #${r.id}?`);
+    if (!ok) return;
+
+    this.deleting.add(r.id);
+
+    this.service.remove(r.id).subscribe({
+      next: () => {
+        const atual = this.reportes();
+        this.reportes.set(atual.filter(rep => rep.id !== r.id));
+        this.deleting.delete(r.id);
+      },
+      error: (e) => {
+        this.errorMsg.set(e?.error?.message || 'Falha ao excluir reporte.');
+        this.deleting.delete(r.id);
+      }
+    });
   }
 
   // helpers

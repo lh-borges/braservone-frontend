@@ -111,7 +111,7 @@ export class QuimicosComponent implements OnInit {
   // filtros
   searchTerm = '';
   statusFiltro: 'TODOS' | StatusQuimicos = 'TODOS';
-  estadoFiltro: 'TODOS' | Estado = 'TODOS'; // <<< NOVO
+  estadoFiltro: 'TODOS' | Estado = 'TODOS';
 
   // options
   statusOptions: StatusQuimicos[] = [StatusQuimicos.ATIVO, StatusQuimicos.FINALIZADO];
@@ -160,11 +160,24 @@ export class QuimicosComponent implements OnInit {
     observacao: ''
   };
 
-  // ===== Formatação de estoque (concatena quantidade + unidade) =====
+  // ===== Formatação de estoque =====
   private nf = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 6 });
+
   fmtEstoque(q: QuimicoDTO): string {
     const qty = Number(q.estoqueInicial ?? 0);
     return `${this.nf.format(qty)} ${q.unidade}`;
+  }
+
+  fmtEstoqueUtilizado(q: QuimicoDTO): string {
+    const used = Number(q.estoqueUtilizado ?? 0);
+    return `${this.nf.format(used)} ${q.unidade}`;
+  }
+
+  fmtEstoqueAtual(q: QuimicoDTO): string {
+    const ini  = Number(q.estoqueInicial ?? 0);
+    const used = Number(q.estoqueUtilizado ?? 0);
+    const diff = ini - used;
+    return `${this.nf.format(diff)} ${q.unidade}`;
   }
 
   // computed
@@ -178,13 +191,13 @@ export class QuimicosComponent implements OnInit {
         const tipoStr   = q.tipoQuimico != null ? String(q.tipoQuimico).toLowerCase() : '';
         const fornStr   = q.fornecedor?.nome?.toLowerCase() ?? '';
         const loteStr   = (q.lote ?? '').toLowerCase();
-        const estadoStr = String(q.estadoLocalArmazenamento ?? '').toLowerCase(); // <<< NOVO
+        const estadoStr = String(q.estadoLocalArmazenamento ?? '').toLowerCase();
         return (
           codigoStr.includes(termo) ||
           tipoStr.includes(termo)   ||
           fornStr.includes(termo)   ||
           loteStr.includes(termo)   ||
-          estadoStr.includes(termo) // <<< NOVO
+          estadoStr.includes(termo)
         );
       });
     }
@@ -193,21 +206,20 @@ export class QuimicosComponent implements OnInit {
       arr = arr.filter(q => q.statusQuimicos === this.statusFiltro);
     }
 
-    if (this.estadoFiltro !== 'TODOS') { // <<< NOVO
+    if (this.estadoFiltro !== 'TODOS') {
       arr = arr.filter(q => q.estadoLocalArmazenamento === this.estadoFiltro);
     }
 
     return arr;
   }
-  onPesquisar() { /* filtro já é reativo via getter */ }
 
-  // lifecycle
+  onPesquisar() { }
+
   ngOnInit(): void {
     this.carregarQuimicos();
     this.carregarFornecedores();
   }
 
-  // data loads
   private carregarQuimicos(): void {
     this.carregando = true;
     this.quimicoService.listar().subscribe({
@@ -279,11 +291,9 @@ export class QuimicosComponent implements OnInit {
       estoqueInicial: Number(this.novo.estoqueInicial ?? 0),
       valorQuimico: this.novo.valorQuimico != null ? Number(this.novo.valorQuimico) : null,
       statusQuimicos: (this.novo.statusQuimicos ?? StatusQuimicos.ATIVO) as StatusQuimicos,
-      // LocalDate (sem timezone)
       dataValidade: (this.novo.dataValidadeDateInput && this.novo.dataValidadeDateInput.length === 10)
         ? this.novo.dataValidadeDateInput
         : null,
-      // OffsetDateTime (com Z)
       dataCompra: (this.novo.dataCompraDateInput && this.novo.dataCompraDateInput.length === 10)
         ? toIsoStartOfDayUTC(this.novo.dataCompraDateInput)
         : null,
