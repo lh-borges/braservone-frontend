@@ -1,0 +1,129 @@
+/* Paleta de Cores & Base */
+:root {
+  --color-primary: #3b82f6;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-dark-title: #1a1f36;
+  --color-muted-label: #6c757d;
+  --color-border-light: #f1f3f5;
+  --color-off-white: #f4f6f8;
+  --color-table-border-soft: #e5e7eb; /* Novo cinza para bordas suaves */
+}
+
+/* Base */
+body { background-color: var(--color-off-white); } 
+
+/* 1. Cards (Flutuantes) */
+.card-soft {
+  background: #ffffff;
+  border-radius: 12px;
+  /* Sombra Soft UI */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); 
+  border: 1px solid rgba(0,0,0,0.05); /* Borda muito sutil */
+  transition: all 0.2s ease;
+}
+
+/* 2. Tipografia */
+.text-dark-title { color: var(--color-dark-title) !important; }
+.text-muted-label { 
+  color: var(--color-muted-label) !important; 
+  font-weight: 600; 
+  font-size: 0.7rem; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px;
+}
+.text-muted-light { color: #9ca3af !important; }
+
+/* 3. Color Accents (Bordas Laterais) */
+.accent-info { border-left: 5px solid var(--color-primary) !important; }
+
+/* 4. Botões & Inputs */
+.btn-soft-primary {
+  background-color: var(--color-primary); 
+  border-color: var(--color-primary);
+  color: #fff; 
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.btn-soft-primary:hover { background-color: #2563eb; border-color: #2563eb; }
+
+.btn-soft-success {
+  background-color: var(--color-success); 
+  border-color: var(--color-success);
+  color: #fff; 
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+}
+.btn-soft-success:hover { background-color: #059669; border-color: #059669; }
+
+.btn-soft-clean { border-radius: 8px; }
+.btn-search-icon { border-color: #e2e8f0 !important; color: #4f46e5 !important; }
+
+.form-control, .form-select { 
+  border-radius: 8px; 
+  border-color: #e2e8f0; 
+  color: var(--color-dark-title); 
+}
+
+/* 5. Separadores */
+.button-bar-separator { border-bottom: 1px solid var(--color-border-light); }
+
+/* 6. Tabelas (Soft Clean) */
+.table-soft {
+  --bs-table-bg: #fff; 
+  border-radius: 12px; 
+}
+.table-soft thead th {
+  background: var(--color-off-white); 
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e2e8f0;
+}
+.table-soft tbody td {
+  /* *** ALTERAÇÃO AQUI: Borda horizontal mais visível, mas ainda suave *** */
+  border-bottom: 1px solid var(--color-table-border-soft); 
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  vertical-align: middle;
+}
+.table-soft tr:hover { background-color: #fcfcfc; }
+.table-soft tr:last-child td { border-bottom: none; }
+
+/* 7. Badges (Estilo Pastel) */
+.badge-pastel-blue { 
+  background-color: #eef2ff; 
+  color: #4f46e5; 
+  font-weight: 600; 
+  font-size: 0.75rem; 
+  padding: 4px 8px; 
+  border-radius: 6px; 
+}
+
+/* 8. Cores de Status e Alertas */
+.text-success-soft { color: var(--color-success) !important; }
+.text-danger-soft { color: var(--color-danger) !important; }
+
+.alert-soft-danger { 
+  background-color: #fff0f0; 
+  border: 1px solid #fee2e2;
+  border-left: 5px solid var(--color-danger); 
+  color: var(--color-danger);
+  padding: 1rem;
+  font-size: 0.9rem;
+  border-radius: 8px;
+}
+
+.btn-delete-icon {
+  background: none;
+  border: none;
+  color: var(--color-danger);
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+.btn-delete-icon:hover { background-color: #fee2e2; }
